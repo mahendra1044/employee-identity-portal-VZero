@@ -1,0 +1,11 @@
+{
+  "lastLogin": "2025-09-17T14:22:11Z",
+  "activeSessions": 2,
+  "ssoProviders": ["Okta", "AzureAD"],
+  "idp": "PingFederate",
+  "sp": ["Slack", "Github", "Jira"],
+  "tokenStatus": "Valid",
+  "mfaEnforced": true,
+  "recentApps": ["Jira", "Confluence", "Datadog", "Github"],
+  "sessionTimeoutMinutes": 60
+}

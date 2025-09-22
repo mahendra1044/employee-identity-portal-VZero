@@ -1,0 +1,22 @@
+[
+  { "userId": "u1001", "status": "Enabled", "lastEvent": "2025-09-17T14:22:11Z" },
+  { "userId": "u1002", "status": "Enabled", "lastEvent": "2025-09-16T09:05:00Z" },
+  { "userId": "u1003", "status": "Disabled", "lastEvent": "2025-08-30T12:00:00Z" },
+  { "userId": "u1004", "status": "Enabled", "lastEvent": "2025-09-10T18:12:44Z" },
+  { "userId": "u1005", "status": "Pending", "lastEvent": "2025-09-12T07:45:21Z" },
+  { "userId": "u1006", "status": "Enabled", "lastEvent": "2025-09-15T15:31:09Z" },
+  { "userId": "u1007", "status": "Enabled", "lastEvent": "2025-09-14T11:22:33Z" },
+  { "userId": "u1008", "status": "Disabled", "lastEvent": "2025-08-22T10:01:00Z" },
+  { "userId": "u1009", "status": "Enabled", "lastEvent": "2025-09-13T13:55:10Z" },
+  { "userId": "u1010", "status": "Enabled", "lastEvent": "2025-09-11T08:05:45Z" },
+  { "userId": "u1011", "status": "Pending", "lastEvent": "2025-09-11T10:15:00Z" },
+  { "userId": "u1012", "status": "Enabled", "lastEvent": "2025-09-12T10:20:00Z" },
+  { "userId": "u1013", "status": "Enabled", "lastEvent": "2025-09-13T08:40:30Z" },
+  { "userId": "u1014", "status": "Disabled", "lastEvent": "2025-08-20T16:00:00Z" },
+  { "userId": "u1015", "status": "Enabled", "lastEvent": "2025-09-14T09:25:10Z" },
+  { "userId": "u1016", "status": "Enabled", "lastEvent": "2025-09-15T12:35:50Z" },
+  { "userId": "u1017", "status": "Pending", "lastEvent": "2025-09-09T07:30:00Z" },
+  { "userId": "u1018", "status": "Enabled", "lastEvent": "2025-09-13T14:05:00Z" },
+  { "userId": "u1019", "status": "Enabled", "lastEvent": "2025-09-16T17:45:00Z" },
+  { "userId": "u1020", "status": "Disabled", "lastEvent": "2025-08-25T06:55:00Z" }
+]

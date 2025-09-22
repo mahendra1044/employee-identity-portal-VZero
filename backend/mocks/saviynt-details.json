@@ -1,0 +1,29 @@
+{
+  "accountId": "svy-acc-1001",
+  "user": "alice.johnson",
+  "displayName": "Alice Johnson",
+  "department": "Engineering",
+  "manager": "Bob Martin",
+  "roles": [
+    { "name": "Engineer", "grantedOn": "2024-01-12", "owner": "eng-manager", "certified": true },
+    { "name": "VPN User", "grantedOn": "2023-11-02", "owner": "net-ops", "certified": true }
+  ],
+  "entitlements": [
+    { "application": "Jira", "name": "Jira-User", "grantedOn": "2023-10-05" },
+    { "application": "Github", "name": "Github-Read", "grantedOn": "2023-12-18" }
+  ],
+  "risk": {
+    "score": 12,
+    "factors": ["Multiple VPN groups", "Local admin on workstation"],
+    "lastCalculated": "2025-08-31T00:00:00Z"
+  },
+  "lastReviewed": "2025-08-31",
+  "certifications": [
+    { "campaign": "Q3-2025 Access Review", "status": "Approved", "completedAt": "2025-09-05" }
+  ],
+  "accessRequestsOpen": 0,
+  "history": [
+    { "ts": "2025-07-14T09:20:00Z", "action": "RoleGranted", "detail": "Engineer" },
+    { "ts": "2025-06-01T10:12:00Z", "action": "EntitlementGranted", "detail": "Github-Read" }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "upn": "alice.johnson@company.com",
+  "objectId": "aad-7f3c1a10-12ab-4b9e-9e12-111122223333",
+  "tenant": "company.onmicrosoft.com",
+  "jobTitle": "Senior Software Engineer",
+  "department": "Engineering",
+  "manager": "Bob Martin",
+  "licenses": ["M365 E5", "PowerBI Pro", "Visual Studio Enterprise"],
+  "groups": [
+    { "id": "g-eng", "name": "AAD-Eng" },
+    { "id": "g-vpn", "name": "AAD-VPN-Users" },
+    { "id": "g-dev", "name": "AAD-Developers" }
+  ],
+  "devices": [
+    { "id": "dev-001", "name": "WIN-ALICE-01", "os": "Windows 11", "lastCheckIn": "2025-09-17T10:00:00Z" },
+    { "id": "dev-002", "name": "MBP-ALICE", "os": "macOS 15", "lastCheckIn": "2025-09-16T08:30:00Z" }
+  ],
+  "signInRisk": "low",
+  "conditionalAccess": {
+    "policies": ["Require MFA", "Block legacy auth"],
+    "lastEvaluated": "2025-09-17T12:55:00Z"
+  },
+  "lastSync": "2025-09-17T12:55:00Z"
+}

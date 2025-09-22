@@ -1,0 +1,226 @@
+[
+  {
+    "number": "INC0010001",
+    "short_description": "Unable to sign in to VPN",
+    "state": "open",
+    "priority": "2 - High",
+    "updatedAt": "2025-09-18T12:10:00Z",
+    "assigned_to": "jane.doe@company.com"
+  },
+  {
+    "number": "INC0010002",
+    "short_description": "Password reset request",
+    "state": "in_progress",
+    "priority": "4 - Low",
+    "updatedAt": "2025-09-18T14:55:00Z",
+    "assigned_to": "john.smith@company.com"
+  },
+  {
+    "number": "INC0010003",
+    "short_description": "MFA push notifications not received",
+    "state": "open",
+    "priority": "3 - Moderate",
+    "updatedAt": "2025-09-19T07:05:00Z",
+    "assigned_to": "john.smith@company.com"
+  },
+  {
+    "number": "INC0010004",
+    "short_description": "Access denied to CyberArk safe",
+    "state": "closed",
+    "priority": "3 - Moderate",
+    "updatedAt": "2025-09-17T09:30:00Z",
+    "assigned_to": "jane.doe@company.com"
+  },
+  {
+    "number": "INC0010005",
+    "short_description": "Ping Federate SSO error for Salesforce",
+    "state": "in_progress",
+    "priority": "2 - High",
+    "updatedAt": "2025-09-19T06:25:00Z",
+    "assigned_to": "ops.engineer@company.com"
+  },
+  {
+    "number": "INC0010006",
+    "short_description": "Azure AD group membership issue",
+    "state": "open",
+    "priority": "3 - Moderate",
+    "updatedAt": "2025-09-18T21:12:00Z",
+    "assigned_to": "employee@company.com"
+  },
+  {
+    "number": "INC0010007",
+    "short_description": "Saviynt role not applied",
+    "state": "closed",
+    "priority": "4 - Low",
+    "updatedAt": "2025-09-16T15:40:00Z",
+    "assigned_to": "employee@company.com"
+  },
+  {
+    "number": "INC0010008",
+    "short_description": "Ping Directory attribute mismatch",
+    "state": "open",
+    "priority": "3 - Moderate",
+    "updatedAt": "2025-09-19T08:02:00Z",
+    "assigned_to": "ops@company.com"
+  },
+  {
+    "number": "INC0020001",
+    "short_description": "Laptop cannot connect to Wi‑Fi",
+    "state": "open",
+    "priority": "3 - Moderate",
+    "updatedAt": "2025-09-19T09:10:00Z",
+    "assigned_to": "alice.johnson@company.com"
+  },
+  {
+    "number": "INC0020002",
+    "short_description": "Email delivery delayed",
+    "state": "in_progress",
+    "priority": "4 - Low",
+    "updatedAt": "2025-09-18T17:30:00Z",
+    "assigned_to": "bob.martin@company.com"
+  },
+  {
+    "number": "INC0020003",
+    "short_description": "Account locked after failed MFA",
+    "state": "open",
+    "priority": "2 - High",
+    "updatedAt": "2025-09-19T08:45:00Z",
+    "assigned_to": "charlie.kim@company.com"
+  },
+  {
+    "number": "INC0020004",
+    "short_description": "Unable to access shared drive",
+    "state": "closed",
+    "priority": "3 - Moderate",
+    "updatedAt": "2025-09-17T13:20:00Z",
+    "assigned_to": "dana.lee@company.com"
+  },
+  {
+    "number": "INC0020005",
+    "short_description": "VPN disconnects intermittently",
+    "state": "in_progress",
+    "priority": "3 - Moderate",
+    "updatedAt": "2025-09-19T06:55:00Z",
+    "assigned_to": "evan.torres@company.com"
+  },
+  {
+    "number": "INC0020006",
+    "short_description": "Saviynt access request pending too long",
+    "state": "open",
+    "priority": "4 - Low",
+    "updatedAt": "2025-09-18T11:05:00Z",
+    "assigned_to": "fatima.khan@company.com"
+  },
+  {
+    "number": "INC0020007",
+    "short_description": "Ping Federate SSO loop for Workday",
+    "state": "open",
+    "priority": "2 - High",
+    "updatedAt": "2025-09-19T07:25:00Z",
+    "assigned_to": "george.smith@company.com"
+  },
+  {
+    "number": "INC0020008",
+    "short_description": "Phone not receiving MFA prompts",
+    "state": "in_progress",
+    "priority": "2 - High",
+    "updatedAt": "2025-09-19T05:40:00Z",
+    "assigned_to": "hannah.park@company.com"
+  },
+  {
+    "number": "INC0020009",
+    "short_description": "Azure AD password sync delay",
+    "state": "closed",
+    "priority": "4 - Low",
+    "updatedAt": "2025-09-16T10:15:00Z",
+    "assigned_to": "ian.chen@company.com"
+  },
+  {
+    "number": "INC0020010",
+    "short_description": "Cannot see group memberships",
+    "state": "open",
+    "priority": "3 - Moderate",
+    "updatedAt": "2025-09-18T19:22:00Z",
+    "assigned_to": "julia.nguyen@company.com"
+  },
+  {
+    "number": "INC0020011",
+    "short_description": "Ping Directory profile out of date",
+    "state": "in_progress",
+    "priority": "3 - Moderate",
+    "updatedAt": "2025-09-19T04:12:00Z",
+    "assigned_to": "kevin.patel@company.com"
+  },
+  {
+    "number": "INC0020012",
+    "short_description": "CyberArk checkout failing",
+    "state": "open",
+    "priority": "2 - High",
+    "updatedAt": "2025-09-19T03:58:00Z",
+    "assigned_to": "laura.garcia@company.com"
+  },
+  {
+    "number": "INC0020013",
+    "short_description": "SSO error after password change",
+    "state": "closed",
+    "priority": "4 - Low",
+    "updatedAt": "2025-09-15T16:44:00Z",
+    "assigned_to": "mohammed.ali@company.com"
+  },
+  {
+    "number": "INC0020014",
+    "short_description": "MFA device enrollment help",
+    "state": "open",
+    "priority": "4 - Low",
+    "updatedAt": "2025-09-18T08:30:00Z",
+    "assigned_to": "nina.brown@company.com"
+  },
+  {
+    "number": "INC0020015",
+    "short_description": "Cannot access Salesforce",
+    "state": "in_progress",
+    "priority": "2 - High",
+    "updatedAt": "2025-09-19T07:59:00Z",
+    "assigned_to": "oscar.diaz@company.com"
+  },
+  {
+    "number": "INC0020016",
+    "short_description": "Saviynt role removal not reflected",
+    "state": "closed",
+    "priority": "4 - Low",
+    "updatedAt": "2025-09-17T21:05:00Z",
+    "assigned_to": "priya.singh@company.com"
+  },
+  {
+    "number": "INC0020017",
+    "short_description": "Ping MFA push timing out",
+    "state": "open",
+    "priority": "3 - Moderate",
+    "updatedAt": "2025-09-19T08:11:00Z",
+    "assigned_to": "quentin.roux@company.com"
+  },
+  {
+    "number": "INC0020018",
+    "short_description": "Azure AD conditional access block",
+    "state": "in_progress",
+    "priority": "2 - High",
+    "updatedAt": "2025-09-19T06:05:00Z",
+    "assigned_to": "rita.souza@company.com"
+  },
+  {
+    "number": "INC0020019",
+    "short_description": "Okta to AAD group sync confusion (info)",
+    "state": "closed",
+    "priority": "5 - Planning",
+    "updatedAt": "2025-09-14T12:00:00Z",
+    "assigned_to": "sam.wilson@company.com"
+  },
+  {
+    "number": "INC0020020",
+    "short_description": "VPN client update required",
+    "state": "open",
+    "priority": "4 - Low",
+    "updatedAt": "2025-09-18T13:45:00Z",
+    "assigned_to": "tina.zhang@company.com"
+  }
+]

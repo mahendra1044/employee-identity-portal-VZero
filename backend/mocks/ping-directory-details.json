@@ -1,0 +1,41 @@
+{
+  "userId": "u1001",
+  "name": "Alice Johnson",
+  "email": "alice.johnson@company.com",
+  "department": "Engineering",
+  "title": "Senior Software Engineer",
+  "manager": "Bob Martin",
+  "location": "NYC",
+  "phone": "+1-212-555-0101",
+  "status": "Active",
+  "hireDate": "2022-04-12",
+  "employeeType": "Full-Time",
+  "costCenter": "EN-001",
+  "employeeId": "E-7742",
+  "uid": "alice.johnson",
+  "groups": [
+    "eng-apps",
+    "vpn-users",
+    "slack-standard"
+  ],
+  "lastPasswordChange": "2025-05-02T11:42:00Z",
+  "pwdPolicy": {
+    "minLength": 12,
+    "requiresNumber": true,
+    "requiresSymbol": true,
+    "maxAgeDays": 90
+  },
+  "accountFlags": {
+    "locked": false,
+    "mustChangePassword": false,
+    "mfaEnforced": true
+  },
+  "attributes": {
+    "givenName": "Alice",
+    "sn": "Johnson",
+    "displayName": "Alice Johnson",
+    "street": "100 7th Ave",
+    "postalCode": "10011",
+    "country": "US"
+  }
+}

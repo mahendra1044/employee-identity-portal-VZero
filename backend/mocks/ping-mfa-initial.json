@@ -1,0 +1,14 @@
+{
+  "status": "Enabled",
+  "enrolledDevices": [
+    { "type": "Phone", "model": "iPhone 14", "lastUsed": "2025-09-17T14:21:00Z" },
+    { "type": "AuthenticatorApp", "name": "PingID", "lastUsed": "2025-09-12T10:05:00Z" }
+  ],
+  "lastEvent": "2025-09-17T14:22:11Z",
+  "enrollmentDate": "2022-04-15",
+  "policy": {
+    "challengeOnNewDevice": true,
+    "biometricsAllowed": true,
+    "minOSVersion": "13.0"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "status": "Enabled",
+  "enrolledDevices": [
+    { "type": "Phone", "model": "iPhone 14", "lastUsed": "2025-09-17T14:21:00Z", "fingerprint": "dev-iph14-alice" },
+    { "type": "AuthenticatorApp", "name": "PingID", "lastUsed": "2025-09-12T10:05:00Z", "fingerprint": "app-pingid-alice" }
+  ],
+  "lastEvent": "2025-09-17T14:22:11Z",
+  "enrollmentDate": "2022-04-15",
+  "policy": {
+    "challengeOnNewDevice": true,
+    "biometricsAllowed": true,
+    "minOSVersion": "13.0",
+    "trustedNetworks": ["10.0.0.0/8", "192.168.0.0/16"],
+    "stepUpApps": ["Datadog", "BillingPortal"]
+  },
+  "history": [
+    { "ts": "2025-09-17T14:22:11Z", "event": "MFAChallenge", "result": "Pass", "app": "Github" },
+    { "ts": "2025-09-15T09:12:03Z", "event": "DeviceEnroll", "result": "Success", "device": "PingID" },
+    { "ts": "2025-09-10T08:31:44Z", "event": "MFAChallenge", "result": "Pass", "app": "Jira" }
+  ]
+}

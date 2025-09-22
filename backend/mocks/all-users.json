@@ -1,0 +1,208 @@
+[
+  {
+    "userId": "u1001",
+    "name": "Alice Johnson",
+    "email": "alice.johnson@company.com",
+    "systems": {
+      "ping-directory": { "department": "Engineering", "title": "Senior Software Engineer" },
+      "ping-federate": { "lastLogin": "2025-09-17T14:22:11Z", "tokenStatus": "Valid" },
+      "cyberark": { "privilegedAccess": true, "safe": "Engineering-Privileged" },
+      "saviynt": { "roles": ["Engineer", "VPN User"], "riskScore": 12 },
+      "azure-ad": { "jobTitle": "Senior Software Engineer", "licenses": ["M365 E5", "PowerBI Pro"] },
+      "ping-mfa": { "status": "Enabled" }
+    }
+  },
+  {
+    "userId": "u1002",
+    "name": "Bob Martin",
+    "email": "bob.martin@company.com",
+    "systems": {
+      "ping-directory": { "department": "Engineering", "title": "Engineering Manager" },
+      "ping-federate": { "lastLogin": "2025-09-16T09:05:00Z", "tokenStatus": "Valid" },
+      "cyberark": { "privilegedAccess": true, "safe": "Eng-Leadership" },
+      "saviynt": { "roles": ["Manager", "VPN User"], "riskScore": 8 },
+      "azure-ad": { "jobTitle": "Engineering Manager", "licenses": ["M365 E5"] },
+      "ping-mfa": { "status": "Enabled" }
+    }
+  },
+  {
+    "userId": "u1003",
+    "name": "Charlie Kim",
+    "email": "charlie.kim@company.com",
+    "systems": {
+      "ping-directory": { "department": "IT", "title": "Support Engineer" },
+      "ping-mfa": { "status": "Disabled" },
+      "azure-ad": { "jobTitle": "Support Engineer", "licenses": ["M365 E3"] }
+    }
+  },
+  {
+    "userId": "u1004",
+    "name": "Dana Lee",
+    "email": "dana.lee@company.com",
+    "systems": {
+      "ping-directory": { "department": "Finance", "title": "Financial Analyst" },
+      "ping-federate": { "lastLogin": "2025-09-10T18:12:44Z", "tokenStatus": "Valid" },
+      "ping-mfa": { "status": "Enabled" }
+    }
+  },
+  {
+    "userId": "u1005",
+    "name": "Evan Torres",
+    "email": "evan.torres@company.com",
+    "systems": {
+      "ping-directory": { "department": "HR", "title": "HR Specialist" },
+      "saviynt": { "roles": ["HR Specialist"], "riskScore": 5 },
+      "ping-mfa": { "status": "Pending" }
+    }
+  },
+  {
+    "userId": "u1006",
+    "name": "Fatima Khan",
+    "email": "fatima.khan@company.com",
+    "systems": {
+      "ping-directory": { "department": "Security", "title": "Security Analyst" },
+      "cyberark": { "privilegedAccess": true, "safe": "Security-Privileged" },
+      "ping-mfa": { "status": "Enabled" }
+    }
+  },
+  {
+    "userId": "u1007",
+    "name": "George Smith",
+    "email": "george.smith@company.com",
+    "systems": {
+      "ping-directory": { "department": "Marketing", "title": "Marketing Manager" },
+      "azure-ad": { "jobTitle": "Marketing Manager", "licenses": ["M365 E3"] },
+      "ping-mfa": { "status": "Enabled" }
+    }
+  },
+  {
+    "userId": "u1008",
+    "name": "Hannah Park",
+    "email": "hannah.park@company.com",
+    "systems": {
+      "ping-directory": { "department": "Design", "title": "Product Designer" },
+      "saviynt": { "roles": ["Designer"], "riskScore": 4 },
+      "ping-mfa": { "status": "Disabled" }
+    }
+  },
+  {
+    "userId": "u1009",
+    "name": "Ian Chen",
+    "email": "ian.chen@company.com",
+    "systems": {
+      "ping-directory": { "department": "Engineering", "title": "Software Engineer" },
+      "ping-federate": { "lastLogin": "2025-09-13T13:55:10Z", "tokenStatus": "Valid" },
+      "azure-ad": { "jobTitle": "Software Engineer", "licenses": ["M365 E5"] },
+      "ping-mfa": { "status": "Enabled" }
+    }
+  },
+  {
+    "userId": "u1010",
+    "name": "Julia Nguyen",
+    "email": "julia.nguyen@company.com",
+    "systems": {
+      "ping-directory": { "department": "Product", "title": "Product Manager" },
+      "saviynt": { "roles": ["Product Manager"], "riskScore": 6 },
+      "ping-mfa": { "status": "Enabled" }
+    }
+  },
+  {
+    "userId": "u1011",
+    "name": "Kevin Patel",
+    "email": "kevin.patel@company.com",
+    "systems": {
+      "ping-directory": { "department": "Sales", "title": "Account Executive" },
+      "ping-mfa": { "status": "Pending" }
+    }
+  },
+  {
+    "userId": "u1012",
+    "name": "Laura Garcia",
+    "email": "laura.garcia@company.com",
+    "systems": {
+      "ping-directory": { "department": "Legal", "title": "Counsel" },
+      "ping-federate": { "lastLogin": "2025-09-12T10:20:00Z", "tokenStatus": "Valid" },
+      "azure-ad": { "jobTitle": "Counsel", "licenses": ["M365 E3"] },
+      "ping-mfa": { "status": "Enabled" }
+    }
+  },
+  {
+    "userId": "u1013",
+    "name": "Mohammed Ali",
+    "email": "mohammed.ali@company.com",
+    "systems": {
+      "ping-directory": { "department": "IT", "title": "SysAdmin" },
+      "cyberark": { "privilegedAccess": true, "safe": "IT-Privileged" },
+      "ping-mfa": { "status": "Enabled" }
+    }
+  },
+  {
+    "userId": "u1014",
+    "name": "Nina Brown",
+    "email": "nina.brown@company.com",
+    "systems": {
+      "ping-directory": { "department": "Customer Support", "title": "CSM" },
+      "ping-mfa": { "status": "Disabled" }
+    }
+  },
+  {
+    "userId": "u1015",
+    "name": "Oscar Diaz",
+    "email": "oscar.diaz@company.com",
+    "systems": {
+      "ping-directory": { "department": "Engineering", "title": "QA Engineer" },
+      "saviynt": { "roles": ["QA"], "riskScore": 7 },
+      "ping-mfa": { "status": "Enabled" }
+    }
+  },
+  {
+    "userId": "u1016",
+    "name": "Priya Singh",
+    "email": "priya.singh@company.com",
+    "systems": {
+      "ping-directory": { "department": "Data", "title": "Data Scientist" },
+      "azure-ad": { "jobTitle": "Data Scientist", "licenses": ["M365 E5", "PowerBI Pro"] },
+      "ping-mfa": { "status": "Enabled" }
+    }
+  },
+  {
+    "userId": "u1017",
+    "name": "Quentin Roux",
+    "email": "quentin.roux@company.com",
+    "systems": {
+      "ping-directory": { "department": "Finance", "title": "Controller" },
+      "ping-federate": { "lastLogin": "2025-09-09T07:30:00Z", "tokenStatus": "Valid" },
+      "ping-mfa": { "status": "Pending" }
+    }
+  },
+  {
+    "userId": "u1018",
+    "name": "Rita Souza",
+    "email": "rita.souza@company.com",
+    "systems": {
+      "ping-directory": { "department": "People Ops", "title": "HRBP" },
+      "saviynt": { "roles": ["HRBP"], "riskScore": 10 },
+      "ping-mfa": { "status": "Enabled" }
+    }
+  },
+  {
+    "userId": "u1019",
+    "name": "Sam Wilson",
+    "email": "sam.wilson@company.com",
+    "systems": {
+      "ping-directory": { "department": "Security", "title": "GRC Analyst" },
+      "cyberark": { "privilegedAccess": false, "safe": "GRC-ReadOnly" },
+      "ping-mfa": { "status": "Enabled" }
+    }
+  },
+  {
+    "userId": "u1020",
+    "name": "Tina Zhang",
+    "email": "tina.zhang@company.com",
+    "systems": {
+      "ping-directory": { "department": "Engineering", "title": "DevOps Engineer" },
+      "azure-ad": { "jobTitle": "DevOps Engineer", "licenses": ["M365 E5"] },
+      "ping-mfa": { "status": "Disabled" }
+    }
+  }
+]

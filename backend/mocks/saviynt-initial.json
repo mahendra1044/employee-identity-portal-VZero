@@ -1,0 +1,12 @@
+{
+  "accountId": "svy-acc-1001",
+  "user": "alice.johnson",
+  "displayName": "Alice Johnson",
+  "department": "Engineering",
+  "manager": "Bob Martin",
+  "roles": ["Engineer", "VPN User"],
+  "entitlements": ["Jira-User", "Github-Read"],
+  "riskScore": 12,
+  "lastReviewed": "2025-08-31",
+  "accessRequestsOpen": 0
+}

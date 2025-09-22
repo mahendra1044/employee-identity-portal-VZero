@@ -1,0 +1,27 @@
+{
+  "lastLogin": "2025-09-17T14:22:11Z",
+  "activeSessions": 2,
+  "ssoProviders": ["Okta", "AzureAD"],
+  "idp": "PingFederate",
+  "sp": ["Slack", "Github", "Jira", "Confluence", "Datadog"],
+  "tokenStatus": "Valid",
+  "mfaEnforced": true,
+  "recentApps": ["Jira", "Confluence", "Datadog", "Github"],
+  "sessionTimeoutMinutes": 60,
+  "sessions": [
+    { "sessionId": "s-101", "app": "Jira", "ip": "192.168.1.20", "startedAt": "2025-09-17T13:40:00Z" },
+    { "sessionId": "s-102", "app": "Github", "ip": "192.168.1.21", "startedAt": "2025-09-17T14:10:00Z" }
+  ],
+  "tokenClaims": {
+    "sub": "u1001",
+    "email": "alice.johnson@company.com",
+    "aud": ["jira", "github"],
+    "iss": "pingfederate.company.com",
+    "exp": 1768765200
+  },
+  "audit": [
+    { "ts": "2025-09-16T16:12:00Z", "event": "LoginSuccess", "app": "Jira" },
+    { "ts": "2025-09-15T09:48:00Z", "event": "LoginSuccess", "app": "Github" },
+    { "ts": "2025-09-14T18:05:00Z", "event": "MFAChallenge", "status": "Passed" }
+  ]
+}
