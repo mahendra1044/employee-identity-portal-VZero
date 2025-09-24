@@ -4,13 +4,16 @@ import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Sun, Moon, User, Copy } from "lucide-react";
-import { getSupportEmail } from "@/lib/support-emails";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Sun, Moon, User, Copy, RefreshCw, Eye, Code, BookOpen, FileText, LogOut, Globe, Shield, Database, Users, History, CheckCircle as Status, Smartphone as Device, Calendar as Event, LogIn as Signin, Activity, Badge as Role, Key as Entitlement, Send as Request, Vault, Settings as SettingsIcon } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import EDUCATE_CONFIG from "@/lib/educate-config.json";
 
-const API_BASE = "http://localhost:3001"; // dev: backend server
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:3001"; // dev: backend server (configurable)
 
 type Features = {
   credentialSource: string;
@@ -62,13 +65,15 @@ function useAuth() {
   const [email, setEmail] = useState<string | null>(null);
 
   useEffect(() => {
-    const t = localStorage.getItem("token");
-    const r = localStorage.getItem("role");
-    const e = localStorage.getItem("email");
-    if (t && r && e) {
-      setToken(t);
-      setRole(r);
-      setEmail(e);
+    if (typeof window !== 'undefined') {
+      const t = localStorage.getItem("token");
+      const r = localStorage.getItem("role");
+      const e = localStorage.getItem("email");
+      if (t && r && e) {
+        setToken(t);
+        setRole(r);
+        setEmail(e);
+      }
     }
   }, []);
 
@@ -80,18 +85,22 @@ function useAuth() {
     });
     if (!res.ok) throw new Error("Login failed");
     const data: LoginResponse = await res.json();
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("role", data.role);
-    localStorage.setItem("email", data.email);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("role", data.role);
+      localStorage.setItem("email", data.email);
+    }
     setToken(data.token);
     setRole(data.role);
     setEmail(data.email);
   };
 
   const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-    localStorage.removeItem("email");
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem("token");
+      localStorage.removeItem("role");
+      localStorage.removeItem("email");
+    }
     setToken(null);
     setRole(null);
     setEmail(null);
@@ -106,12 +115,14 @@ function SystemCard({
   enabled,
   token,
   role,
+  email,
 }: {
   name: string;
   system: SystemKey;
   enabled: boolean;
   token: string;
   role: string;
+  email: string;
 }) {
   const [data, setData] = useState<any | null>(null);
   const [details, setDetails] = useState<any | null>(null);
@@ -124,9 +135,15 @@ function SystemCard({
   const [pfTitle, setPfTitle] = useState<string>("");
   const [pfLoading, setPfLoading] = useState(false);
   const [pfData, setPfData] = useState<any>(null);
+  const [description, setDescription] = useState("");
+  const [ticketDialogOpen, setTicketDialogOpen] = useState(false);
 
-  const loadInitial = async () => {
+  const loadInitial = async (showToast = true) => {
     if (!enabled) return;
+    let refreshToast;
+    if (showToast) {
+      refreshToast = toast.loading(`Refreshing ${name}...`);
+    }
     setLoading(true);
     setError(null);
     try {
@@ -148,8 +165,14 @@ function SystemCard({
       }
       const json = await res.json();
       setData(json.data);
+      if (showToast) {
+        toast.success(`Refreshed ${name}`, { id: refreshToast });
+      }
     } catch (e: any) {
       setError(e.message || "Error loading data");
+      if (showToast) {
+        toast.error(`Failed to refresh ${name}: ${e.message}`, { id: refreshToast });
+      }
     } finally {
       setLoading(false);
     }
@@ -186,7 +209,7 @@ function SystemCard({
   };
 
   useEffect(() => {
-    loadInitial();
+    loadInitial(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, enabled]);
 
@@ -231,178 +254,167 @@ function SystemCard({
     setHtmlOpen(true);
   };
 
-  const sendEmail = async () => {
-    const to = getSupportEmail(system);
-    const subject = `[${name}] Help request`;
+  const submitSnowTicket = async (description?: string) => {
+    if (!email) {
+      toast.error("Email not available - please log in again");
+      return;
+    }
     const payload = details || data || {};
-    const body = `Hello ${name} Support,\n\nPlease assist with an issue on ${name}.\n\nContext (JSON excerpt):\n\n${JSON.stringify(payload, null, 2).slice(0, 1500)}\n\nThank you.`;
+    const defaultDesc = `Access issue investigation request for user ${email} in ${system} system. Please review attached payload for details.`;
+    const additional = description?.trim() ? `\n\nAdditional information:\n${description.trim()}` : '';
+    const ticketDesc = defaultDesc + additional;
     try {
-      const res = await fetch("/api/send-email", {
+      const res = await fetch("/api/submit-snow-ticket", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ to, subject, body, system, payload }),
+        body: JSON.stringify({ system, payload, userEmail: email, description: ticketDesc }),
       });
+      const result = await res.json();
       if (res.ok) {
-        toast.success("Email sent successfully");
+        const { ticketNumber } = result;
+        toast.success(`SNOW ticket submitted: ${ticketNumber}`);
+        console.info('SNOW Ticket Success:', { ticketNumber, system, userEmail: email, description: ticketDesc, payload });
       } else {
-        toast.error("Failed to send email");
+        toast.error(result.error || "Failed to submit SNOW ticket");
+        console.warn('SNOW Ticket Failure:', { system, userEmail: email, status: res.status, error: result.error || await res.text(), description: ticketDesc, payload });
       }
-    } catch {
-      toast.error("Failed to send email");
+    } catch (error) {
+      toast.error("Failed to submit SNOW ticket");
+      console.error('SNOW Ticket Error:', { system, userEmail: email, error: (error as Error).message, description: ticketDesc, payload });
     }
   };
 
-  // Add a negative scenario trigger for CyberArk to simulate a failed send
-  const sendEmailFailTest = async () => {
-    const to = "invalid"; // intentionally invalid to force backend validation failure
-    const subject = `[${name}] Help request (Fail Test)`;
-    const payload = details || data || {};
-    const body = `This is a negative test for ${name} email sending.`;
-    try {
-      const res = await fetch("/api/send-email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-Force-Fail": "1" }, // header hint if backend supports it
-        body: JSON.stringify({ to, subject, body, system, payload, forceFail: true }),
-      });
-      if (res.ok) {
-        // If backend didn't fail, still inform the user this was a fail test
-        toast.warning("Email unexpectedly succeeded (fail test)");
-      } else {
-        toast.error("Failed to send email (expected for test)");
-      }
-    } catch {
-      toast.error("Failed to send email (expected for test)");
-    }
+  const openTicketDialog = () => {
+    setDescription("");
+    setTicketDialogOpen(true);
+  };
+
+  const handleSubmitTicket = () => {
+    submitSnowTicket(description);
+    setTicketDialogOpen(false);
   };
 
   return (
     <>
       <Card className="shadow-sm">
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between gap-3">
-            <span className="text-base md:text-lg font-semibold whitespace-normal break-words">{name}</span>
-            <div className="flex flex-wrap items-center gap-2">
-              <Button size="sm" variant="secondary" onClick={loadInitial} disabled={!enabled || loading}>
-                Refresh
-              </Button>
-              <Button size="sm" onClick={loadDetails} disabled={!enabled || loading}>
-                View Details
-              </Button>
-              <Button size="sm" variant="outline" onClick={openHtmlView} disabled={!enabled || loading}>
-                HTML View
-              </Button>
-              <Button size="sm" variant="outline" onClick={sendEmail} disabled={!enabled}>
-                Send Email
-              </Button>
-              {system === "cyberark" && (
-                <Button size="sm" variant="destructive" onClick={sendEmailFailTest} disabled={!enabled}>
-                  Send Email (Fail test)
-                </Button>
-              )}
-            </div>
-          </CardTitle>
+        <CardHeader className="text-center pb-3">
+          <CardTitle className="text-lg font-semibold">{name}</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="flex justify-end mb-2">
+        <CardContent className="space-y-4">
+          <div className="flex justify-end gap-2">
+            <Button size="sm" variant="secondary" onClick={() => loadInitial(true)} disabled={!enabled || loading} title="Refresh system data">
+              <RefreshCw className="h-4 w-4" />
+            </Button>
             {data && (
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => navigator.clipboard.writeText(JSON.stringify(data, null, 2))}
+                onClick={() => {
+                  navigator.clipboard.writeText(JSON.stringify(data, null, 2));
+                  toast.success(`Copied ${name} JSON to clipboard`);
+                }}
+                title="Copy current JSON data to clipboard"
               >
-                Copy JSON
+                <Copy className="h-4 w-4" />
               </Button>
             )}
-            {system === "ping-federate" && role === "employee" && (
-              <div className="ml-2 flex flex-wrap gap-2">
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={async () => {
-                    setPfTitle("Ping Federate — User Info");
-                    setPfOpen(true);
-                    setPfLoading(true);
-                    try {
-                      const res = await fetch("/api/pf/userinfo");
-                      const j = await res.json().catch(() => ({}));
-                      setPfData(j?.data ?? j);
-                    } catch {
-                      setPfData({ error: "Failed to load User Info" });
-                    } finally {
-                      setPfLoading(false);
-                    }
-                  }}
-                >
-                  User Info
-                </Button>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={async () => {
-                    setPfTitle("Ping Federate — OIDC Connections");
-                    setPfOpen(true);
-                    setPfLoading(true);
-                    try {
-                      const res = await fetch("/api/pf/oidc");
-                      const j = await res.json().catch(() => ({}));
-                      setPfData(j?.data ?? j);
-                    } catch {
-                      setPfData({ error: "Failed to load OIDC connections" });
-                    } finally {
-                      setPfLoading(false);
-                    }
-                  }}
-                >
-                  OIDC
-                </Button>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={async () => {
-                    setPfTitle("Ping Federate — SAML Connections");
-                    setPfOpen(true);
-                    setPfLoading(true);
-                    try {
-                      const res = await fetch("/api/pf/saml");
-                      const j = await res.json().catch(() => ({}));
-                      setPfData(j?.data ?? j);
-                    } catch {
-                      setPfData({ error: "Failed to load SAML connections" });
-                    } finally {
-                      setPfLoading(false);
-                    }
-                  }}
-                >
-                  SAML
-                </Button>
-              </div>
-            )}
+            <Button size="sm" onClick={loadDetails} disabled={!enabled || loading} title="View detailed information">
+              <Eye className="h-4 w-4" />
+            </Button>
+            <Button size="sm" variant="outline" onClick={openHtmlView} disabled={!enabled || loading} title="View data in HTML format">
+              <Code className="h-4 w-4" />
+            </Button>
+            <Button size="sm" variant="outline" onClick={openTicketDialog} disabled={!enabled} title="Submit SNOW ticket with current data">
+              <FileText className="h-4 w-4" />
+            </Button>
           </div>
-          {!enabled ? (
-            <p className="text-sm text-muted-foreground">Feature not enabled</p>
-          ) : loading ? (
-            <p className="text-sm animate-pulse">Loading...</p>
-          ) : error ? (
-            <p className="text-sm text-red-600">{error}</p>
-          ) : (
-            <div className="space-y-3">
-              {data ? (
-                <div>
-                  <pre className="text-xs bg-muted p-2 rounded overflow-x-auto">
-                    {JSON.stringify(data, null, 2)}
-                  </pre>
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">No data yet</p>
-              )}
-              {/* details moved to dialog to keep the page compact */}
+          {system === "ping-federate" && role === "employee" && (
+            <div className="flex flex-wrap gap-2 justify-center p-3 bg-muted/50 rounded-lg">
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={async () => {
+                  setPfTitle("Ping Federate — User Info");
+                  setPfOpen(true);
+                  setPfLoading(true);
+                  try {
+                    const res = await fetch("/api/pf/userinfo");
+                    const j = await res.json().catch(() => ({}));
+                    setPfData(j?.data ?? j);
+                  } catch {
+                    setPfData({ error: "Failed to load User Info" });
+                  } finally {
+                    setPfLoading(false);
+                  }
+                }}
+                title="Fetch and view user information from Ping Federate"
+              >
+                <User className="h-4 w-4 mr-1" />
+                User Info
+              </Button>
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={async () => {
+                  setPfTitle("Ping Federate — OIDC Connections");
+                  setPfOpen(true);
+                  setPfLoading(true);
+                  try {
+                    const res = await fetch("/api/pf/oidc");
+                    const j = await res.json().catch(() => ({}));
+                    setPfData(j?.data ?? j);
+                  } catch {
+                    setPfData({ error: "Failed to load OIDC connections" });
+                  } finally {
+                    setPfLoading(false);
+                  }
+                }}
+                title="View OIDC connections in Ping Federate"
+              >
+                <Globe className="h-4 w-4 mr-1" />
+                OIDC
+              </Button>
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={async () => {
+                  setPfTitle("Ping Federate — SAML Connections");
+                  setPfOpen(true);
+                  setPfLoading(true);
+                  try {
+                    const res = await fetch("/api/pf/saml");
+                    const j = await res.json().catch(() => ({}));
+                    setPfData(j?.data ?? j);
+                  } catch {
+                    setPfData({ error: "Failed to load SAML connections" });
+                  } finally {
+                    setPfLoading(false);
+                  }
+                }}
+                title="View SAML connections in Ping Federate"
+              >
+                <Shield className="h-4 w-4 mr-1" />
+                SAML
+              </Button>
             </div>
           )}
+          <div className="space-y-3">
+            {data ? (
+              <div>
+                <pre className="text-xs bg-muted p-2 rounded overflow-x-auto">
+                  {JSON.stringify(data, null, 2)}
+                </pre>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No data yet</p>
+            )}
+            {/* details moved to dialog to keep the page compact */}
+          </div>
         </CardContent>
       </Card>
 
       <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle className="flex items-center justify-between w-full pr-12">
               <span>{name} — Details</span>
@@ -411,8 +423,9 @@ function SystemCard({
                   size="sm"
                   variant="outline"
                   onClick={() => navigator.clipboard.writeText(JSON.stringify(details, null, 2))}
+                  title="Copy JSON to clipboard"
                 >
-                  Copy JSON
+                  <Copy className="h-4 w-4" />
                 </Button>
               )}
             </DialogTitle>
@@ -420,7 +433,7 @@ function SystemCard({
           {loading ? (
             <p className="text-sm animate-pulse">Loading details...</p>
           ) : details ? (
-            <pre className="text-xs bg-muted p-2 rounded overflow-x-auto max-h-[70vh] overflow-y-auto">
+            <pre className="flex-1 text-xs bg-muted p-2 rounded overflow-auto m-0">
               {JSON.stringify(details, null, 2)}
             </pre>
           ) : (
@@ -430,7 +443,7 @@ function SystemCard({
       </Dialog>
 
       <Dialog open={htmlOpen} onOpenChange={setHtmlOpen}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle className="pr-12">{name} — HTML View</DialogTitle>
           </DialogHeader>
@@ -439,8 +452,8 @@ function SystemCard({
             if (!payload) return <p className="text-sm text-muted-foreground">No data available to display</p>;
             const pairs = toPairs(payload).slice(0, 1000); // safety cap
             return (
-              <div className="max-h-[70vh] overflow-y-auto pr-1">
-                <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
+              <div className="flex-1 overflow-auto pr-1">
+                <dl className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-2">
                   {pairs.map(({ k, v }) => (
                     <div key={k} className="flex flex-col py-1 border-b last:border-b-0 border-border/60">
                       <dt className="text-xs font-medium text-muted-foreground truncate">{k}</dt>
@@ -458,15 +471,43 @@ function SystemCard({
         </DialogContent>
       </Dialog>
 
+      {/* Ticket Dialog */}
+      <Dialog open={ticketDialogOpen} onOpenChange={setTicketDialogOpen}>
+        <DialogContent className="max-h-[80vh] flex flex-col">
+          <DialogHeader className="flex-shrink-0">
+            <DialogTitle>Create SNOW Ticket for {name}</DialogTitle>
+            <DialogDescription>Enter additional details if needed. This will be included in the ticket description.</DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col flex-1 min-h-0">
+            <div className="flex-1 overflow-y-auto p-6">
+              <Textarea
+                placeholder="Optional: Add more information about the access issue or investigation needed..."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="w-full min-h-[120px] resize-none"
+              />
+            </div>
+            <div className="flex justify-end gap-3 p-6 pt-4 border-t flex-shrink-0">
+              <Button type="button" variant="outline" onClick={() => setTicketDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="button" onClick={handleSubmitTicket}>
+                Submit Ticket
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* PF Employee Dialog */}
       <Dialog open={pfOpen} onOpenChange={setPfOpen}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle className="flex items-center justify-between w-full pr-12">
               <span>{pfTitle || "Ping Federate"}</span>
               {pfData && (
-                <Button size="sm" variant="outline" onClick={() => navigator.clipboard.writeText(JSON.stringify(pfData, null, 2))}>
-                  Copy JSON
+                <Button size="sm" variant="outline" onClick={() => navigator.clipboard.writeText(JSON.stringify(pfData, null, 2))} title="Copy JSON to clipboard">
+                  <Copy className="h-4 w-4" />
                 </Button>
               )}
             </DialogTitle>
@@ -474,7 +515,7 @@ function SystemCard({
           {pfLoading ? (
             <p className="text-sm animate-pulse">Loading...</p>
           ) : Array.isArray(pfData) ? (
-            <div className="max-h-[70vh] overflow-y-auto pr-1">
+            <div className="flex-1 overflow-auto pr-1">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -495,7 +536,9 @@ function SystemCard({
               </Table>
             </div>
           ) : pfData ? (
-            <pre className="text-xs bg-muted p-2 rounded overflow-x-auto max-h-[70vh] overflow-y-auto">{JSON.stringify(pfData, null, 2)}</pre>
+            <pre className="flex-1 text-xs bg-muted p-2 rounded overflow-auto m-0">
+              {JSON.stringify(pfData, null, 2)}
+            </pre>
           ) : (
             <p className="text-sm text-muted-foreground">No data available</p>
           )}
@@ -592,6 +635,47 @@ export default function HomePage() {
   // Ops Quick Actions active tab
   const [qaActive, setQaActive] = useState<SystemKey>("ping-federate");
 
+  // Settings state for system card visibility
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [userToggles, setUserToggles] = useState<Record<SystemKey, boolean>>({});
+
+  // Initialize user toggles from localStorage on mount (client-side only)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem("systemToggles");
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          setUserToggles(parsed);
+        } catch {
+          // Invalid JSON, reset to empty
+          localStorage.removeItem("systemToggles");
+          setUserToggles({});
+        }
+      }
+    }
+  }, []);
+
+  // Apply theme class to root element and persist to localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined' && theme) {
+      let classes = '';
+      if (theme === 'light') {
+        classes = '';
+      } else if (theme === 'dark') {
+        classes = 'dark';
+      } else if (theme === 'navy') {
+        classes = 'dark navy';
+      }
+      document.documentElement.className = classes;
+      localStorage.setItem("theme", theme);
+    }
+  }, [theme]);
+
+  const isAggregate = useMemo(() => {
+    return !!searchDialogData && typeof searchDialogData === 'object' && Object.keys(searchDialogData).some(k => SYSTEMS.includes(k as SystemKey));
+  }, [searchDialogData]);
+
   // helper for HTML view in search dialog (global)
   const toPairsGlobal = (obj: any): Array<{ k: string; v: any }> => {
     const out: Array<{ k: string; v: any }> = [];
@@ -624,51 +708,32 @@ export default function HomePage() {
   };
 
   // Static, shared mock guide (same for all employees)
-  const EDUCATE_GUIDE = useMemo(() => (
-    [
-      {
-        id: "mfa",
-        title: "MFA related issues",
-        system: "ping-mfa" as SystemKey,
-        summary: "Check Ping MFA JSON logs for enrollment, device, and last event details.",
-        sample: {
-          userId: "u12345",
-          status: "Enabled",
-          enrolledDevices: ["iPhone 14"],
-          lastEvent: "Push timeout",
-          lastEventAt: new Date().toISOString(),
-        },
-        actions: { viewJson: true, sendMail: true },
-      },
-      {
-        id: "safe",
-        title: "Safe / Vault access issues",
-        system: "cyberark" as SystemKey,
-        summary: "Review CyberArk JSON to understand Safe membership and credential status.",
-        sample: {
-          safe: "CORP-APP-PROD",
-          account: "svc_corp_app",
-          access: "requested",
-          reason: "Pending approval",
-          lastChecked: new Date().toISOString(),
-        },
-        actions: { viewJson: true, sendMail: true },
-      },
-      {
-        id: "directory",
-        title: "Profile / directory attribute issues",
-        system: "ping-directory" as SystemKey,
-        summary: "Verify core attributes in Ping Directory (email, department, status).",
-        sample: {
-          name: "Employee Name",
-          email: String(email || localStorage.getItem("email") || "").toLowerCase(),
-          department: "Engineering",
-          status: "active",
-        },
-        actions: { viewJson: true, sendMail: false },
-      },
-    ]
-  ), [email]);
+  const EDUCATE_GUIDE = useMemo(() => ({
+    "ping-directory": {
+      title: "Ping Directory",
+      summary: "",
+    },
+    "ping-federate": {
+      title: "Ping Federate",
+      summary: "",
+    },
+    "cyberark": {
+      title: "CyberArk",
+      summary: "",
+    },
+    "saviynt": {
+      title: "Saviynt",
+      summary: "",
+    },
+    "azure-ad": {
+      title: "Azure AD",
+      summary: "",
+    },
+    "ping-mfa": {
+      title: "Ping MFA",
+      summary: "",
+    },
+  }), [email]);
 
   // Deployment-time toggle: env overrides features when provided
   const educateEnabled = useMemo(() => {
@@ -679,24 +744,17 @@ export default function HomePage() {
 
   useEffect(() => {
     // init theme from localStorage; default to light regardless of system
-    const stored = localStorage.getItem("theme");
-    if (stored === "light" || stored === "dark" || stored === "navy") {
-      setTheme(stored);
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem("theme");
+      if (stored === "light" || stored === "dark" || stored === "navy") {
+        setTheme(stored);
+      } else {
+        setTheme("light");
+      }
     } else {
       setTheme("light");
     }
   }, []);
-
-  useEffect(() => {
-    if (!theme) return;
-    const root = document.documentElement;
-    // reset theme classes first
-    root.classList.remove("dark");
-    root.classList.remove("navy");
-    if (theme === "dark") root.classList.add("dark");
-    if (theme === "navy") root.classList.add("navy");
-    localStorage.setItem("theme", theme);
-  }, [theme]);
 
   useEffect(() => {
     if (!token) return;
@@ -726,10 +784,30 @@ export default function HomePage() {
     run();
   }, [token]);
 
+  // Initialize user toggles to defaults after features load
+  useEffect(() => {
+    if (!features || !token) return;
+    const defaults = SYSTEMS.reduce((acc, s) => ({ ...acc, [s]: !!(features.systems[s] ?? false) }), {} as Record<SystemKey, boolean>);
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem("systemToggles");
+      const parsed = stored ? JSON.parse(stored) : {};
+      const updatedToggles = { ...defaults, ...parsed };
+      setUserToggles(updatedToggles);
+      localStorage.setItem("systemToggles", JSON.stringify(updatedToggles));
+    } else {
+      setUserToggles(defaults);
+    }
+  }, [features, token]);
+
   const enabled = useMemo(() => {
     const all = features?.systems || {};
     return SYSTEMS.reduce((acc, s) => ({ ...acc, [s]: !!all[s] }), {} as Record<SystemKey, boolean>);
   }, [features]);
+
+  // Combined visibility: enabled && userToggles
+  const visibleSystems = useMemo(() => {
+    return SYSTEMS.filter(s => enabled[s] && userToggles[s]);
+  }, [enabled, userToggles]);
 
   // Quick Actions tab enablement (from backend features or NEXT_PUBLIC env flags)
   const qaEnabledTabs = useMemo(() => {
@@ -929,6 +1007,20 @@ export default function HomePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, role]);
 
+  // Handle logout: clear toggles
+  const handleLogout = () => {
+    localStorage.removeItem("systemToggles");
+    setUserToggles({});
+    logout();
+  };
+
+  // Handle toggle change
+  const handleToggleChange = (system: SystemKey, checked: boolean) => {
+    const updated = { ...userToggles, [system]: checked };
+    setUserToggles(updated);
+    localStorage.setItem("systemToggles", JSON.stringify(updated));
+  };
+
   if (!token) {
     return <LoginCard onLogin={login} />;
   }
@@ -961,13 +1053,19 @@ export default function HomePage() {
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap justify-end">
             <Button variant="ghost" size="icon" aria-label="Toggle theme" onClick={() => setTheme(prev => prev === "light" ? "dark" : prev === "dark" ? "navy" : "light")}>
               {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
             </Button>
+            {/* Settings button */}
+            <Button variant="ghost" size="sm" onClick={() => setSettingsOpen(true)} title="Settings">
+              <SettingsIcon className="h-4 w-4 mr-1" />
+              Settings
+            </Button>
             {/* Educate Me (employees only) */}
             {role === "employee" && educateEnabled && (
-              <Button variant="outline" onClick={() => setEducateOpen(true)}>
+              <Button variant="outline" size="sm" onClick={() => setEducateOpen(true)} title="Access educational guides for common issues">
+                <BookOpen className="h-4 w-4 mr-1" />
                 Educate me
               </Button>
             )}
@@ -975,61 +1073,97 @@ export default function HomePage() {
             {(
               role !== 'ops' || (hasSearched && !!resolveSnowEmail())
             ) && (
-              <Button variant="outline" onClick={openSnowDialog} title={role === 'ops' ? (resolveSnowEmail() || undefined) : undefined}>
-                <span className="mr-2">Show SNOW tickets</span>
-                {typeof snowCount === 'number' && (
-                  <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-[11px] text-foreground">
+              <Button variant="outline" size="sm" onClick={openSnowDialog} title={role === 'ops' ? (resolveSnowEmail() || undefined) : "View your ServiceNow incidents"}>
+                <FileText className="h-4 w-4 mr-1" />
+                <span className="hidden sm:inline">SNOW tickets</span>
+                <span className="sm:hidden">SNOW</span>
+                {typeof snowCount === 'number' && snowCount > 0 && (
+                  <span className="inline-flex items-center rounded-full bg-destructive px-2 py-0.5 text-[11px] text-destructive-foreground ml-1">
                     {snowCount}
                   </span>
                 )}
               </Button>
             )}
-            <Button variant="secondary" onClick={logout}>Sign out</Button>
+            <Button variant="secondary" size="sm" onClick={handleLogout} title="Sign out of the portal">
+              <LogOut className="h-4 w-4 mr-1" />
+              Sign out
+            </Button>
           </div>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-6 space-y-8">
+        {/* Settings Dialog */}
+        <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>System Card Visibility</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-2">
+              <p className="text-sm text-muted-foreground">Toggle which system cards to display. Defaults reset on logout/login.</p>
+              <div className="space-y-3 max-h-60 overflow-y-auto">
+                {SYSTEMS.map((sys) => (
+                  <div key={sys} className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium">{SYSTEM_LABELS[sys]}</label>
+                      <p className="text-xs text-muted-foreground">
+                        {enabled[sys] ? "Enabled" : "Disabled by admin"}
+                      </p>
+                    </div>
+                    <Checkbox
+                      checked={userToggles[sys] ?? false}
+                      onCheckedChange={(checked) => handleToggleChange(sys, !!checked)}
+                      disabled={!enabled[sys]}
+                    />
+                  </div>
+                ))}
+              </div>
+              <Button variant="outline" onClick={() => {
+                const defaults = SYSTEMS.reduce((acc, s) => ({ ...acc, [s]: enabled[s] }), {} as Record<SystemKey, boolean>);
+                setUserToggles(defaults);
+                localStorage.setItem("systemToggles", JSON.stringify(defaults));
+                toast.success("Reset to defaults");
+              }} className="w-full">
+                Reset to Defaults
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
         {/* Educate Guide Dialog */}
         <Dialog open={educateOpen} onOpenChange={setEducateOpen}>
-          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Issue Guide — Where to look</DialogTitle>
+              <DialogTitle>Educational Guides — By System</DialogTitle>
             </DialogHeader>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {EDUCATE_GUIDE.map((g) => (
-                <Card key={g.id} className="border">
-                  <CardHeader>
-                    <CardTitle className="text-base flex items-center justify-between gap-2">
-                      <span>{g.title}</span>
-                      <span className="text-[10px] px-2 py-0.5 rounded border bg-muted whitespace-nowrap">{SYSTEM_LABELS[g.system]}</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <p className="text-sm text-muted-foreground">{g.summary}</p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {g.actions.viewJson && (
-                        <Button
-                          size="sm"
-                          className="w-full justify-center gap-2"
-                          variant="secondary"
-                          onClick={() => {
-                            navigator.clipboard.writeText(JSON.stringify(g.sample, null, 2));
-                            toast.success("Sample JSON copied");
-                          }}
-                        >
-                          <Copy className="h-4 w-4" />
-                          Copy sample
-                        </Button>
-                      )}
-                    </div>
-                    <details className="group">
-                      <summary className="cursor-pointer text-xs font-medium text-foreground/80 hover:text-foreground select-none">Show sample JSON</summary>
-                      <pre className="mt-2 text-xs bg-muted p-2 rounded overflow-x-auto overflow-y-auto max-h-40 font-mono whitespace-pre-wrap break-words max-w-full">{JSON.stringify(g.sample, null, 2)}</pre>
-                    </details>
-                  </CardContent>
-                </Card>
-              ))}
+            <div className="space-y-0">
+              <Accordion type="single" collapsible className="w-full">
+                {SYSTEMS.map((sys) => {
+                  const points = EDUCATE_CONFIG[sys as keyof typeof EDUCATE_CONFIG] || [];
+                  const guide = EDUCATE_GUIDE[sys as SystemKey];
+                  return (
+                    <AccordionItem key={sys} value={sys}>
+                      <AccordionTrigger className="text-left hover:no-underline">
+                        <div className="flex items-center justify-between w-full">
+                          <span className="font-medium">{SYSTEM_LABELS[sys as SystemKey]}</span>
+                          <span className="text-xs px-2 py-0.5 rounded border bg-muted ml-auto whitespace-nowrap">{sys.replace(/-/g, ' ').toUpperCase()}</span>
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="space-y-3 pt-3">
+                        {points.length > 0 ? (
+                          <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
+                            {points.map((point: string, idx: number) => (
+                              <li key={idx} className="text-sm">{point}</li>
+                            ))}
+                          </ol>
+                        ) : (
+                          <p className="text-sm text-muted-foreground italic">No educational points configured for this system.</p>
+                        )}
+                      </AccordionContent>
+                    </AccordionItem>
+                  );
+                })}
+              </Accordion>
             </div>
           </DialogContent>
         </Dialog>
@@ -1067,10 +1201,10 @@ export default function HomePage() {
                     if (isEmployee && !isSelf && !allowPD) return null;
                     return (
                       <Card>
-                        <CardHeader>
-                          <CardTitle className="text-base">Ping Directory</CardTitle>
+                        <CardHeader className="text-center pb-2">
+                          <CardTitle className="text-base font-semibold">Ping Directory</CardTitle>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="space-y-2">
                           {(() => {
                             const list = Array.isArray(searchResults?.["ping-directory"]) ? searchResults["ping-directory"] : [];
                             const filtered = role === "ops" && search.trim()
@@ -1078,59 +1212,65 @@ export default function HomePage() {
                                   u.userId === search.trim() || u.email?.toLowerCase() === search.trim().toLowerCase()
                                 )
                               : list;
-                            const final = role === "ops" ? filtered.slice(0, 1) : filtered;
-                            return final.length > 0 ? (
-                              <Table>
-                                <TableHeader>
-                                  <TableRow>
-                                    <TableHead>Name</TableHead>
-                                    <TableHead>Email</TableHead>
-                                    <TableHead>User ID</TableHead>
-                                    <TableHead className="w-40">Actions</TableHead>
-                                  </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                  {final.map((u: any) => (
-                                    <TableRow key={`pd-${u.userId}`}>
-                                      <TableCell>{u.name}</TableCell>
-                                      <TableCell>{u.email}</TableCell>
-                                      <TableCell>{u.userId}</TableCell>
-                                      <TableCell>
-                                        <div className="flex gap-2">
-                                          <Button
-                                            size="sm"
-                                            onClick={async () => {
-                                              const key = u.userId || u.email;
-                                              setSearchDialogTitle(`Ping Directory — ${key || "Details"}`);
-                                              setSearchDialogData(null);
-                                              setSearchDialogLoading(true);
-                                              setSearchDialogOpen(true);
-                                              try {
-                                                const url = `${API_BASE}/api/search-employee/${encodeURIComponent(String(key))}/details?system=ping-directory`;
-                                                const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-                                                if (res.ok) {
-                                                  const json = await res.json();
-                                                  setSearchDialogData(json.data ?? u);
-                                                } else {
-                                                  setSearchDialogData(u);
-                                                }
-                                              } catch {
-                                                setSearchDialogData(u);
-                                              } finally {
-                                                setSearchDialogLoading(false);
-                                              }
-                                            }}
-                                          >
-                                            View Details
-                                          </Button>
-                                        </div>
-                                      </TableCell>
-                                    </TableRow>
-                                  ))}
-                                </TableBody>
-                              </Table>
-                            ) : (
-                              <p className="text-sm text-muted-foreground">No results</p>
+                            const finalList = role === "ops" ? filtered.slice(0, 1) : filtered;
+                            return (
+                              <>
+                                <div className="flex justify-end gap-2">
+                                  {finalList.length > 0 && (
+                                    <Button
+                                      size="sm"
+                                      onClick={async () => {
+                                        const firstUser = finalList[0];
+                                        const key = firstUser.userId || firstUser.email;
+                                        setSearchDialogTitle(`Ping Directory — ${key || "Details"}`);
+                                        setSearchDialogData(null);
+                                        setSearchDialogLoading(true);
+                                        setSearchDialogOpen(true);
+                                        try {
+                                          const url = `${API_BASE}/api/search-employee/${encodeURIComponent(String(key))}/details?system=ping-directory`;
+                                          const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+                                          if (res.ok) {
+                                            const json = await res.json();
+                                            setSearchDialogData(json.data ?? firstUser);
+                                          } else {
+                                            setSearchDialogData(firstUser);
+                                          }
+                                        } catch {
+                                          setSearchDialogData(firstUser);
+                                        } finally {
+                                          setSearchDialogLoading(false);
+                                        }
+                                      }}
+                                      title="View detailed information for primary result"
+                                    >
+                                      <Eye className="h-4 w-4 mr-2" />
+                                      View Details
+                                    </Button>
+                                  )}
+                                </div>
+                                {finalList.length > 0 ? (
+                                  <Table>
+                                    <TableHeader>
+                                      <TableRow>
+                                        <TableHead>Name</TableHead>
+                                        <TableHead>Email</TableHead>
+                                        <TableHead>User ID</TableHead>
+                                      </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                      {finalList.map((u: any) => (
+                                        <TableRow key={`pd-${u.userId}`}>
+                                          <TableCell>{u.name}</TableCell>
+                                          <TableCell>{u.email}</TableCell>
+                                          <TableCell>{u.userId}</TableCell>
+                                        </TableRow>
+                                      ))}
+                                    </TableBody>
+                                  </Table>
+                                ) : (
+                                  <p className="text-sm text-muted-foreground">No results</p>
+                                )}
+                              </>
                             );
                           })()}
                         </CardContent>
@@ -1146,68 +1286,74 @@ export default function HomePage() {
                     if (isEmployee && !isSelf && !allowMFA) return null;
                     return (
                       <Card>
-                        <CardHeader>
-                          <CardTitle className="text-base">Ping MFA</CardTitle>
+                        <CardHeader className="text-center pb-2">
+                          <CardTitle className="text-base font-semibold">Ping MFA</CardTitle>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="space-y-2">
                           {(() => {
                             const list = Array.isArray(searchResults?.["ping-mfa"]) ? searchResults["ping-mfa"] : [];
                             const filtered = role === "ops" && search.trim()
-                              ? list.filter((u: any) => u.userId === search.trim())
+                              ? list.filter((u: any) => u.userId === search.trim() || u.email?.toLowerCase() === search.trim().toLowerCase())
                               : list;
-                            const final = role === "ops" ? filtered.slice(0, 1) : filtered;
-                            return final.length > 0 ? (
-                              <Table>
-                                <TableHeader>
-                                  <TableRow>
-                                    <TableHead>User ID</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead>Last Event</TableHead>
-                                    <TableHead className="w-40">Actions</TableHead>
-                                  </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                  {final.map((u: any) => (
-                                    <TableRow key={`mfa-${u.userId}`}>
-                                      <TableCell>{u.userId}</TableCell>
-                                      <TableCell>{u.status}</TableCell>
-                                      <TableCell>{u.lastEvent}</TableCell>
-                                      <TableCell>
-                                        <div className="flex gap-2">
-                                          <Button
-                                            size="sm"
-                                            onClick={async () => {
-                                              const key = u.userId || u.email;
-                                              setSearchDialogTitle(`Ping MFA — ${u.userId}`);
-                                              setSearchDialogData(null);
-                                              setSearchDialogLoading(true);
-                                              setSearchDialogOpen(true);
-                                              try {
-                                                const url = `${API_BASE}/api/search-employee/${encodeURIComponent(String(key))}/details?system=ping-mfa`;
-                                                const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-                                                if (res.ok) {
-                                                  const json = await res.json();
-                                                  setSearchDialogData(json.data ?? u);
-                                                } else {
-                                                  setSearchDialogData(u);
-                                                }
-                                              } catch {
-                                                setSearchDialogData(u);
-                                              } finally {
-                                                setSearchDialogLoading(false);
-                                              }
-                                            }}
-                                          >
-                                            View Details
-                                          </Button>
-                                        </div>
-                                      </TableCell>
-                                    </TableRow>
-                                  ))}
-                                </TableBody>
-                              </Table>
-                            ) : (
-                              <p className="text-sm text-muted-foreground">No results</p>
+                            const finalList = role === "ops" ? filtered.slice(0, 1) : filtered;
+                            return (
+                              <>
+                                <div className="flex justify-end gap-2">
+                                  {finalList.length > 0 && (
+                                    <Button
+                                      size="sm"
+                                      onClick={async () => {
+                                        const firstUser = finalList[0];
+                                        const key = firstUser.userId || firstUser.email;
+                                        setSearchDialogTitle(`Ping MFA — ${firstUser.userId}`);
+                                        setSearchDialogData(null);
+                                        setSearchDialogLoading(true);
+                                        setSearchDialogOpen(true);
+                                        try {
+                                          const url = `${API_BASE}/api/search-employee/${encodeURIComponent(String(key))}/details?system=ping-mfa`;
+                                          const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+                                          if (res.ok) {
+                                            const json = await res.json();
+                                            setSearchDialogData(json.data ?? firstUser);
+                                          } else {
+                                            setSearchDialogData(firstUser);
+                                          }
+                                        } catch {
+                                          setSearchDialogData(firstUser);
+                                        } finally {
+                                          setSearchDialogLoading(false);
+                                        }
+                                      }}
+                                      title="View detailed information for primary result"
+                                    >
+                                      <Eye className="h-4 w-4 mr-2" />
+                                      View Details
+                                    </Button>
+                                  )}
+                                </div>
+                                {finalList.length > 0 ? (
+                                  <Table>
+                                    <TableHeader>
+                                      <TableRow>
+                                        <TableHead>User ID</TableHead>
+                                        <TableHead>Status</TableHead>
+                                        <TableHead>Last Event</TableHead>
+                                      </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                      {finalList.map((u: any) => (
+                                        <TableRow key={`mfa-${u.userId}`}>
+                                          <TableCell>{u.userId}</TableCell>
+                                          <TableCell>{u.status}</TableCell>
+                                          <TableCell>{u.lastEvent}</TableCell>
+                                        </TableRow>
+                                      ))}
+                                    </TableBody>
+                                  </Table>
+                                ) : (
+                                  <p className="text-sm text-muted-foreground">No results</p>
+                                )}
+                              </>
                             );
                           })()}
                         </CardContent>
@@ -1215,207 +1361,211 @@ export default function HomePage() {
                     );
                   })()}
 
-                  {/* Global View All Systems buttons */}
-                  <div className="md:col-span-2">
-                    <div className="flex flex-col sm:flex-row gap-2">
-                      <Button
-                        className="w-full sm:w-auto"
-                        variant="secondary"
-                        onClick={async () => {
-                          // Determine the best key candidates from search results
-                          const pd = Array.isArray(searchResults?.["ping-directory"]) ? searchResults["ping-directory"] : [];
-                          const mfa = Array.isArray(searchResults?.["ping-mfa"]) ? searchResults["ping-mfa"] : [];
-                          const q = String(search).trim().toLowerCase();
-                          const exactPd = pd.find((u: any) => u?.email?.toLowerCase?.() === q || u?.userId === search.trim());
-                          const exactMfa = mfa.find((u: any) => u?.userId === search.trim());
-                          const firstPd = pd?.[0];
-                          const firstMfa = mfa?.[0];
-                          // Build candidate identifiers to try per-system (email + userId variants)
-                          const baseCandidates = (
-                            [
-                              exactPd?.email,
-                              exactPd?.userId,
-                              exactMfa?.userId,
-                              firstPd?.email,
-                              firstPd?.userId,
-                              firstMfa?.userId,
-                              firstMfa?.email,
-                              search,
-                            ] as Array<string | undefined | null>
-                          ).filter(Boolean).map((s) => String(s));
-                          const candidateKeys = Array.from(new Set([
-                            ...baseCandidates,
-                            ...baseCandidates.map((k) => k.toLowerCase()),
-                            ...baseCandidates.map((k) => k.toUpperCase()),
-                          ]));
-                          const displayKey = candidateKeys[0] || "";
+                  <div className="flex flex-col sm:flex-row gap-2 justify-start mt-4 pt-4 border-t">
+                    <Button
+                      className="flex-1 sm:flex-none min-w-0"
+                      variant="secondary"
+                      size="sm"
+                      onClick={async () => {
+                        // Determine the best key candidates from search results
+                        const pd = Array.isArray(searchResults?.["ping-directory"]) ? searchResults["ping-directory"] : [];
+                        const mfa = Array.isArray(searchResults?.["ping-mfa"]) ? searchResults["ping-mfa"] : [];
+                        const q = String(search).trim().toLowerCase();
+                        const exactPd = pd.find((u: any) => u?.email?.toLowerCase?.() === q || u?.userId === search.trim());
+                        const exactMfa = mfa.find((u: any) => u?.userId === search.trim());
+                        const firstPd = pd?.[0];
+                        const firstMfa = mfa?.[0];
+                        // Build candidate identifiers to try per-system (email + userId variants)
+                        const baseCandidates = (
+                          [
+                            exactPd?.email,
+                            exactPd?.userId,
+                            exactMfa?.userId,
+                            firstPd?.email,
+                            firstPd?.userId,
+                            firstMfa?.userId,
+                            firstMfa?.email,
+                            search,
+                          ] as Array<string | undefined | null>
+                        ).filter(Boolean).map((s) => String(s));
+                        const candidateKeys = Array.from(new Set([
+                          ...baseCandidates,
+                          ...baseCandidates.map((k) => k.toLowerCase()),
+                          ...baseCandidates.map((k) => k.toUpperCase()),
+                        ]));
+                        const displayKey = candidateKeys[0] || "";
 
-                          setSearchDialogMode("json");
-                          setSearchDialogTitle(`${role === "ops" ? "All Systems JSON" : "All Systems"} — ${displayKey || "Details"}`);
-                          setSearchDialogData(null);
-                          setSearchDialogLoading(true);
-                          setSearchDialogOpen(true);
+                        setSearchDialogMode("json");
+                        setSearchDialogTitle(`Consolidated View (JSON) — ${displayKey || "Details"}`);
+                        setSearchDialogData(null);
+                        setSearchDialogLoading(true);
+                        setSearchDialogOpen(true);
+                        try {
+                          const aggregate: Record<string, any> = {};
+                          // fetch all-users once as a fallback source for per-system data
+                          let allUsers: any[] | null = null;
                           try {
-                            const aggregate: Record<string, any> = {};
-                            // fetch all-users once as a fallback source for per-system data
-                            let allUsers: any[] | null = null;
-                            try {
-                              const auRes = await fetch(`${API_BASE}/api/all-users`, {
-                                headers: { Authorization: `Bearer ${token}` },
-                              });
-                              if (auRes.ok) {
-                                const auJson = await auRes.json();
-                                allUsers = Array.isArray(auJson?.data) ? auJson.data : Array.isArray(auJson) ? auJson : null;
-                              }
-                            } catch {}
-
-                            const isEmployee = role === "employee";
-                            const isSelf = String(search).trim().toLowerCase() === String(email || "").toLowerCase();
-                            const allowMap = features?.employeeSearchSystems || {};
-
-                            for (const sys of SYSTEMS) {
-                              // Employee searching others: respect config by skipping disallowed systems
-                              if (isEmployee && !isSelf && allowMap && allowMap[sys] === false) {
-                                aggregate[sys] = null;
-                                continue;
-                              }
-                              let found: any = undefined;
-                              // Try details endpoint with multiple possible identifiers
-                              for (const key of candidateKeys) {
-                                try {
-                                  const url = `${API_BASE}/api/search-employee/${encodeURIComponent(String(key))}/details?system=${sys}`;
-                                  const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-                                  if (res.ok) {
-                                    const json = await res.json();
-                                    if (json?.data) { found = json.data; break; }
-                                  }
-                                } catch {}
-                              }
-                              // Fallback to in-memory search results if details not found
-                              if (!found) {
-                                const arr = Array.isArray((searchResults as any)?.[sys]) ? (searchResults as any)[sys] : [];
-                                const matched = arr.filter((it: any) =>
-                                  candidateKeys.some((k) => it.userId === k || it.email?.toLowerCase?.() === String(k).toLowerCase())
-                                );
-                                if (matched.length > 0) found = matched.length === 1 ? matched[0] : matched;
-                              }
-                              // Fallback to all-users systems map
-                              if (!found && allUsers) {
-                                const matchedUser = allUsers.find((u: any) =>
-                                  candidateKeys.some(
-                                    (k) => u?.userId === k || u?.email?.toLowerCase?.() === String(k).toLowerCase()
-                                  )
-                                );
-                                if (matchedUser && matchedUser.systems && sys in matchedUser.systems) {
-                                  found = matchedUser.systems[sys];
-                                }
-                              }
-                              aggregate[sys] = found ?? null;
+                            const auRes = await fetch(`${API_BASE}/api/all-users`, {
+                              headers: { Authorization: `Bearer ${token}` },
+                            });
+                            if (auRes.ok) {
+                              const auJson = await auRes.json();
+                              allUsers = Array.isArray(auJson?.data) ? auJson.data : Array.isArray(auJson) ? auJson : null;
                             }
-                            setSearchDialogData(aggregate);
-                          } catch {
-                            setSearchDialogData({ error: "Unable to load aggregated details" });
-                          } finally {
-                            setSearchDialogLoading(false);
-                          }
-                        }}
-                      >
-                        {role === "ops" ? "View all system details JSON" : "View All System Details"}
-                      </Button>
-                      {role === "ops" && (
-                        <Button
-                          className="w-full sm:w-auto"
-                          variant="outline"
-                          onClick={async () => {
-                            // trigger same aggregation then render as HTML
-                            setSearchDialogMode("html");
-                            const pd = Array.isArray(searchResults?.["ping-directory"]) ? searchResults["ping-directory"] : [];
-                            const mfa = Array.isArray(searchResults?.["ping-mfa"]) ? searchResults["ping-mfa"] : [];
-                            const q = String(search).trim().toLowerCase();
-                            const exactPd = pd.find((u: any) => u?.email?.toLowerCase?.() === q || u?.userId === search.trim());
-                            const exactMfa = mfa.find((u: any) => u?.userId === search.trim());
-                            const firstPd = pd?.[0];
-                            const firstMfa = mfa?.[0];
-                            const baseCandidates = (
-                              [
-                                exactPd?.email,
-                                exactPd?.userId,
-                                exactMfa?.userId,
-                                firstPd?.email,
-                                firstPd?.userId,
-                                firstMfa?.userId,
-                                firstMfa?.email,
-                                search,
-                              ] as Array<string | undefined | null>
-                            ).filter(Boolean).map((s) => String(s));
-                            const candidateKeys = Array.from(new Set([
-                              ...baseCandidates,
-                              ...baseCandidates.map((k) => k.toLowerCase()),
-                              ...baseCandidates.map((k) => k.toUpperCase()),
-                            ]));
-                            const displayKey = candidateKeys[0] || "";
+                          } catch {}
 
-                            setSearchDialogTitle(`All Systems HTML — ${displayKey || "Details"}`);
-                            setSearchDialogData(null);
-                            setSearchDialogLoading(true);
-                            setSearchDialogOpen(true);
+                          const isEmployee = role === "employee";
+                          const isSelfSearch = String(search).trim().toLowerCase() === String(email || "").toLowerCase();
+                          const allowMap = features?.employeeSearchSystems || {};
 
-                            try {
-                              const aggregate: Record<string, any> = {};
-                              let allUsers: any[] | null = null;
+                          for (const sys of orderedSystems) {
+                            // Employee searching others: respect config by skipping disallowed systems
+                            if (isEmployee && !isSelfSearch && allowMap && allowMap[sys] === false) {
+                              aggregate[sys] = null;
+                              continue;
+                            }
+                            let found: any = undefined;
+                            // Try details endpoint with multiple possible identifiers
+                            for (const key of candidateKeys) {
                               try {
-                                const auRes = await fetch(`${API_BASE}/api/all-users`, {
-                                  headers: { Authorization: `Bearer ${token}` },
-                                });
-                                if (auRes.ok) {
-                                  const auJson = await auRes.json();
-                                  allUsers = Array.isArray(auJson?.data) ? auJson.data : Array.isArray(auJson) ? auJson : null;
+                                const url = `${API_BASE}/api/search-employee/${encodeURIComponent(String(key))}/details?system=${sys}`;
+                                const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+                                if (res.ok) {
+                                  const json = await res.json();
+                                  if (json?.data) { found = json.data; break; }
                                 }
                               } catch {}
-
-                              for (const sys of SYSTEMS) {
-                                let found: any = undefined;
-                                for (const key of candidateKeys) {
-                                  try {
-                                    const url = `${API_BASE}/api/search-employee/${encodeURIComponent(String(key))}/details?system=${sys}`;
-                                    const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-                                    if (res.ok) {
-                                      const json = await res.json();
-                                      if (json?.data) { found = json.data; break; }
-                                    }
-                                  } catch {}
-                                }
-                                if (!found) {
-                                  const arr = Array.isArray((searchResults as any)?.[sys]) ? (searchResults as any)[sys] : [];
-                                  const matched = arr.filter((it: any) =>
-                                    candidateKeys.some((k) => it.userId === k || it.email?.toLowerCase?.() === String(k).toLowerCase())
-                                  );
-                                  if (matched.length > 0) found = matched.length === 1 ? matched[0] : matched;
-                                }
-                                if (!found && allUsers) {
-                                  const matchedUser = allUsers.find((u: any) =>
-                                    candidateKeys.some(
-                                      (k) => u?.userId === k || u?.email?.toLowerCase?.() === String(k).toLowerCase()
-                                    )
-                                  );
-                                  if (matchedUser && matchedUser.systems && sys in matchedUser.systems) {
-                                    found = matchedUser.systems[sys];
-                                  }
-                                }
-                                aggregate[sys] = found ?? null;
-                              }
-                              setSearchDialogData(aggregate);
-                            } catch {
-                              setSearchDialogData({ error: "Unable to load aggregated details" });
-                            } finally {
-                              setSearchDialogLoading(false);
                             }
-                          }}
-                        >
-                          View all system details HTML
-                        </Button>
-                      )}
-                    </div>
+                            // Fallback to in-memory search results if details not found
+                            if (!found) {
+                              const arr = Array.isArray((searchResults as any)?.[sys]) ? (searchResults as any)[sys] : [];
+                              const matched = arr.filter((it: any) =>
+                                candidateKeys.some((k) => it.userId === k || it.email?.toLowerCase?.() === String(k).toLowerCase())
+                              );
+                              if (matched.length > 0) found = matched.length === 1 ? matched[0] : matched;
+                            }
+                            // Fallback to all-users systems map
+                            if (!found && allUsers) {
+                              const matchedUser = allUsers.find((u: any) =>
+                                candidateKeys.some(
+                                  (k) => u?.userId === k || u?.email?.toLowerCase?.() === String(k).toLowerCase()
+                                )
+                              );
+                              if (matchedUser && matchedUser.systems && sys in matchedUser.systems) {
+                                found = matchedUser.systems[sys];
+                              }
+                            }
+                            aggregate[sys] = found ?? null;
+                          }
+                          setSearchDialogData(aggregate);
+                        } catch {
+                          setSearchDialogData({ error: "Unable to load aggregated details" });
+                        } finally {
+                          setSearchDialogLoading(false);
+                        }
+                      }}
+                      title="View aggregated details across all systems in JSON format"
+                    >
+                      <FileText className="h-4 w-4 mr-1 flex-shrink-0" />
+                      <span className="hidden sm:inline">Consolidated View</span>
+                      <span className="sm:hidden">View All</span>
+                    </Button>
+                    <Button
+                      className="flex-1 sm:flex-none min-w-0"
+                      variant="outline"
+                      size="sm"
+                      onClick={async () => {
+                        // Determine the best key candidates from search results
+                        const pd = Array.isArray(searchResults?.["ping-directory"]) ? searchResults["ping-directory"] : [];
+                        const mfa = Array.isArray(searchResults?.["ping-mfa"]) ? searchResults["ping-mfa"] : [];
+                        const q = String(search).trim().toLowerCase();
+                        const exactPd = pd.find((u: any) => u?.email?.toLowerCase?.() === q || u?.userId === search.trim());
+                        const exactMfa = mfa.find((u: any) => u?.userId === search.trim());
+                        const firstPd = pd?.[0];
+                        const firstMfa = mfa?.[0];
+                        // Build candidate identifiers to try per-system (email + userId variants)
+                        const baseCandidates = (
+                          [
+                            exactPd?.email,
+                            exactPd?.userId,
+                            exactMfa?.userId,
+                            firstPd?.email,
+                            firstPd?.userId,
+                            firstMfa?.userId,
+                            firstMfa?.email,
+                            search,
+                          ] as Array<string | undefined | null>
+                        ).filter(Boolean).map((s) => String(s));
+                        const candidateKeys = Array.from(new Set([
+                          ...baseCandidates,
+                          ...baseCandidates.map((k) => k.toLowerCase()),
+                          ...baseCandidates.map((k) => k.toUpperCase()),
+                        ]));
+                        const displayKey = candidateKeys[0] || "";
+
+                        setSearchDialogMode("html");
+                        setSearchDialogTitle(`Consolidated View (HTML) — ${displayKey || "Details"}`);
+                        setSearchDialogData(null);
+                        setSearchDialogLoading(true);
+                        setSearchDialogOpen(true);
+
+                        try {
+                          const aggregate: Record<string, any> = {};
+                          let allUsers: any[] | null = null;
+                          try {
+                            const auRes = await fetch(`${API_BASE}/api/all-users`, {
+                              headers: { Authorization: `Bearer ${token}` },
+                            });
+                            if (auRes.ok) {
+                              const auJson = await auRes.json();
+                              allUsers = Array.isArray(auJson?.data) ? auJson.data : Array.isArray(auJson) ? auJson : null;
+                            }
+                          } catch {}
+
+                          for (const sys of orderedSystems) {
+                            let found: any = undefined;
+                            for (const key of candidateKeys) {
+                              try {
+                                const url = `${API_BASE}/api/search-employee/${encodeURIComponent(String(key))}/details?system=${sys}`;
+                                const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+                                if (res.ok) {
+                                  const json = await res.json();
+                                  if (json?.data) { found = json.data; break; }
+                                }
+                              } catch {}
+                            }
+                            if (!found) {
+                              const arr = Array.isArray((searchResults as any)?.[sys]) ? (searchResults as any)[sys] : [];
+                              const matched = arr.filter((it: any) =>
+                                candidateKeys.some((k) => it.userId === k || it.email?.toLowerCase?.() === String(k).toLowerCase())
+                              );
+                              if (matched.length > 0) found = matched.length === 1 ? matched[0] : matched;
+                            }
+                            if (!found && allUsers) {
+                              const matchedUser = allUsers.find((u: any) =>
+                                candidateKeys.some(
+                                  (k) => u?.userId === k || u?.email?.toLowerCase?.() === String(k).toLowerCase()
+                                )
+                              );
+                              if (matchedUser && matchedUser.systems && sys in matchedUser.systems) {
+                                found = matchedUser.systems[sys];
+                              }
+                            }
+                            aggregate[sys] = found ?? null;
+                          }
+                          setSearchDialogData(aggregate);
+                        } catch {
+                          setSearchDialogData({ error: "Unable to load aggregated details" });
+                        } finally {
+                          setSearchDialogLoading(false);
+                        }
+                      }}
+                      title="View aggregated details across all systems in formatted layout"
+                    >
+                      <Code className="h-4 w-4 mr-1 flex-shrink-0" />
+                      <span className="hidden sm:inline">Readable Layout</span>
+                      <span className="sm:hidden">Format</span>
+                    </Button>
                   </div>
                 </div>
               )}
@@ -1423,18 +1573,18 @@ export default function HomePage() {
           </Card>
           {/* Search result details dialog */}
           <Dialog open={searchDialogOpen} onOpenChange={setSearchDialogOpen}>
-            <DialogContent className="max-w-5xl">
-              <DialogHeader>
-                <DialogTitle className="flex items-center justify-between w-full pr-12">
+            <DialogContent className="max-w-7xl max-h-[90vh] flex flex-col">
+              <DialogHeader className="pb-3 flex-shrink-0">
+                <DialogTitle className="flex items-center justify-between w-full pr-8 text-base">
                   <span>{searchDialogTitle || "Details"}</span>
                   <div className="flex items-center gap-2">
-                    {(searchDialogData && !(searchDialogTitle || "").startsWith("All Systems")) && (
+                    {!isAggregate && searchDialogData && (
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => setSearchDialogMode((m) => (m === "json" ? "html" : "json"))}
                       >
-                        {searchDialogMode === "json" ? "HTML View" : "JSON View"}
+                        {searchDialogMode === "json" ? "Key/Value" : "JSON"}
                       </Button>
                     )}
                     {searchDialogData && (
@@ -1442,124 +1592,126 @@ export default function HomePage() {
                         size="sm"
                         variant="outline"
                         onClick={() => navigator.clipboard.writeText(JSON.stringify(searchDialogData, null, 2))}
+                        title="Copy JSON to clipboard"
                       >
-                        Copy JSON
+                        <Copy className="h-4 w-4" />
                       </Button>
                     )}
                   </div>
                 </DialogTitle>
               </DialogHeader>
-              {searchDialogLoading ? (
-                <p className="text-sm animate-pulse">Loading details...</p>
-              ) : searchDialogData ? (
-                typeof searchDialogData === "object" && (searchDialogTitle || "").startsWith("All Systems") ? (
-                  searchDialogMode === "html" ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[70vh] overflow-y-auto pr-1">
-                      {SYSTEMS.map((sys) => {
-                        const val = (searchDialogData as any)?.[sys] ?? null;
-                        const pairs = val ? toPairsGlobal(val).slice(0, 1000) : [];
-                        return (
-                          <div key={sys} className="rounded border p-3">
-                            <div className="flex items-center justify-between mb-2">
-                              <div className="text-sm font-medium">
-                                {sys.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
-                              </div>
-                              <span
-                                className={
-                                  `text-[10px] px-2 py-0.5 rounded border ${enabled[sys] ?
-                                    'text-green-700 border-green-200 bg-green-50 dark:bg-green-900/20' :
-                                    'text-amber-700 border-amber-200 bg-amber-50 dark:bg-amber-900/20'}`
-                                }
-                              >
-                                {enabled[sys] ? 'Enabled' : 'Disabled'}
-                              </span>
-                            </div>
-                            {val ? (
-                              <div className="space-y-2">
-                                <div className="flex justify-end">
-                                  <Button size="sm" variant="outline" onClick={() => navigator.clipboard.writeText(JSON.stringify(val, null, 2))}>Copy JSON</Button>
+              <div className="flex-1 overflow-auto rounded-md border border-border/20 bg-muted/10">
+                {searchDialogLoading ? (
+                  <div className="flex items-center justify-center h-32">
+                    <p className="text-sm text-muted-foreground animate-pulse">Loading...</p>
+                  </div>
+                ) : searchDialogData ? (
+                  (() => {
+                    if (isAggregate) {
+                      return (
+                        <div className={`
+                          ${searchDialogMode === "html" ? "grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 p-3" : "p-3"} 
+                          max-h-full
+                        `}>
+                          {orderedSystems.map((sys) => {
+                            const val = (searchDialogData as any)?.[sys] ?? null;
+                            const hasData = val && Object.keys(val).length > 0;
+                            if (!enabled[sys] && !hasData) return null;
+                            const content = searchDialogMode === "html" ? (
+                              <div key={sys} className="space-y-1.5 max-h-48 overflow-y-auto">
+                                <div className="flex justify-end mb-1">
+                                  <Button 
+                                    size="sm" 
+                                    variant="ghost" 
+                                    className="h-5 px-1.5 text-xs" 
+                                    onClick={() => navigator.clipboard.writeText(JSON.stringify(val, null, 2))} 
+                                    title="Copy JSON"
+                                  >
+                                    <Copy className="h-3 w-3" />
+                                  </Button>
                                 </div>
-                                <div className="max-h-64 overflow-y-auto pr-1">
-                                  <dl className="grid grid-cols-1 gap-y-2">
-                                    {pairs.map(({ k, v }) => (
-                                      <div key={k} className="flex flex-col py-1 border-b last:border-b-0 border-border/60">
-                                        <dt className="text-xs font-medium text-muted-foreground truncate">{k}</dt>
-                                        <dd className="text-sm break-words">{typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean' ? String(v) : JSON.stringify(v)}</dd>
+                                <div className="border rounded-sm bg-background p-1.5">
+                                  <dl className="grid grid-cols-1 gap-y-1 text-xs">
+                                    {val ? toPairsGlobal(val).slice(0, 30).map(({ k, v }) => (
+                                      <div key={k} className="flex flex-col py-0.5 border-b border-border/20 last:border-b-0 last:pb-0">
+                                        <dt className="font-medium text-muted-foreground/90 truncate text-[10px] mb-0.5">{k}</dt>
+                                        <dd className="break-all text-[11px] leading-tight">
+                                          {typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean' ? String(v) : JSON.stringify(v, null, 2)}
+                                        </dd>
                                       </div>
-                                    ))}
+                                    )) : (
+                                      <p className="text-[10px] text-muted-foreground italic py-2">No data available</p>
+                                    )}
                                   </dl>
                                 </div>
                               </div>
                             ) : (
-                              <p className="text-xs text-muted-foreground">No details available</p>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[70vh] overflow-y-auto pr-1">
-                      {SYSTEMS.map((sys) => {
-                        const val = (searchDialogData as any)?.[sys] ?? null;
-                        return (
-                          <div key={sys} className="rounded border p-3">
-                            <div className="flex items-center justify-between mb-2">
-                              <div className="text-sm font-medium">
-                                {sys.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                              <div key={sys} className="space-y-1.5 max-h-48 overflow-y-auto">
+                                <div className="flex justify-end mb-1">
+                                  <Button 
+                                    size="sm" 
+                                    variant="ghost" 
+                                    className="h-5 px-1.5 text-xs" 
+                                    onClick={() => navigator.clipboard.writeText(JSON.stringify(val, null, 2))} 
+                                    title="Copy JSON"
+                                  >
+                                    <Copy className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                                <pre className="text-[10px] bg-muted/30 p-1.5 rounded overflow-auto font-mono leading-tight m-0">{JSON.stringify(val, null, 2)}</pre>
                               </div>
-                              <div className="flex items-center gap-2">
-                                <span
-                                  className={
-                                    `text-[10px] px-2 py-0.5 rounded border ${enabled[sys] ?
-                                      'text-green-700 border-green-200 bg-green-50 dark:bg-green-900/20' :
-                                      'text-amber-700 border-amber-200 bg-amber-50 dark:bg-amber-900/20'}`
-                                  }
-                                >
-                                  {enabled[sys] ? 'Enabled' : 'Disabled'}
-                                </span>
-                                {val && (
-                                  <Button size="sm" variant="outline" onClick={() => navigator.clipboard.writeText(JSON.stringify(val, null, 2))}>Copy JSON</Button>
-                                )}
-                              </div>
-                            </div>
-                            {val ? (
-                              <pre className="text-xs bg-muted p-2 rounded overflow-x-auto">
-                                {JSON.stringify(val, null, 2)}
-                              </pre>
-                            ) : (
-                              <p className="text-xs text-muted-foreground">No details available</p>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )
-                ) : (
-                  searchDialogMode === "html" ? (
-                    (() => {
-                      const pairs = toPairsGlobal(searchDialogData).slice(0, 1000);
-                      return (
-                        <div className="max-h-[70vh] overflow-y-auto pr-1">
-                          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
-                            {pairs.map(({ k, v }) => (
-                              <div key={k} className="flex flex-col py-1 border-b last:border-b-0 border-border/60">
-                                <dt className="text-xs font-medium text-muted-foreground truncate">{k}</dt>
-                                <dd className="text-sm break-words">{typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean' ? String(v) : JSON.stringify(v)}</dd>
+                            );
+                            return (
+                              <Card className="compact border-border/30 bg-card/50 h-fit">
+                                <CardHeader className="p-2 pb-1.5">
+                                  <div className="flex items-center justify-between gap-2">
+                                    <div className="text-sm font-semibold flex-1 truncate">
+                                      {SYSTEM_LABELS[sys]}
+                                    </div>
+                                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                                      {hasData && <span className="text-xs px-2 py-0.5 rounded-full bg-green/20 text-green-600 dark:bg-green/10 dark:text-green-400">OK</span>}
+                                      <span className={`
+                                        text-xs px-1.5 py-0.5 rounded-full border font-medium 
+                                        ${enabled[sys] ? 'text-green-600 border-green-200 bg-green-50 dark:text-green-400 dark:border-green-800 dark:bg-green-950/20' : 'text-muted-foreground border-muted bg-muted/20 dark:bg-muted/10'}
+                                      `}>
+                                        {enabled[sys] ? 'Enabled' : 'Disabled'}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </CardHeader>
+                                <CardContent className="p-0 pt-1.5">
+                                  {content}
+                                </CardContent>
+                              </Card>
+                            );
+                          }).filter(Boolean)}
+                        </div>
+                      );
+                    } else {
+                      return searchDialogMode === "html" ? (
+                        <div className="max-h-full overflow-auto p-3">
+                          <dl className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-3 gap-y-2 text-xs">
+                            {toPairsGlobal(searchDialogData).slice(0, 80).map(({ k, v }) => (
+                              <div key={k} className="flex flex-col py-1 border-b border-border/20 last:border-b-0">
+                                <dt className="font-medium text-muted-foreground/90 truncate text-[10px] mb-0.5">{k}</dt>
+                                <dd className="break-all text-[11px] leading-tight">{typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean' ? String(v) : JSON.stringify(v)}</dd>
                               </div>
                             ))}
                           </dl>
                         </div>
+                      ) : (
+                        <div className="max-h-full overflow-auto p-3">
+                          <pre className="text-xs bg-muted/30 p-2 rounded overflow-auto font-mono leading-tight m-0">{JSON.stringify(searchDialogData, null, 2)}</pre>
+                        </div>
                       );
-                    })()
-                  ) : (
-                    <div className="space-y-2">
-                      <pre className="text-xs bg-muted p-2 rounded overflow-x-auto max-h-[70vh] overflow-y-auto">{JSON.stringify(searchDialogData, null, 2)}</pre>
-                    </div>
-                  )
-                )
-              ) : (
-                <p className="text-sm text-muted-foreground">No details available</p>
-              )}
+                    }
+                  })()
+                ) : (
+                  <div className="flex items-center justify-center h-32">
+                    <p className="text-sm text-muted-foreground">No details available</p>
+                  </div>
+                )}
+              </div>
             </DialogContent>
           </Dialog>
         </section>
@@ -1590,16 +1742,19 @@ export default function HomePage() {
               <CardContent>
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex flex-wrap gap-1">
-                    {SYSTEMS.filter((s) => qaEnabledTabs[s]).map((s) => (
-                      <Button
-                        key={s}
-                        size="sm"
-                        variant={qaActive === s ? "secondary" : "outline"}
-                        onClick={() => setQaActive(s)}
-                      >
-                        {SYSTEM_LABELS[s]}
-                      </Button>
-                    ))}
+                    <div className="flex flex-wrap gap-1 items-center">
+                      {SYSTEMS.filter((s) => qaEnabledTabs[s]).map((s) => (
+                        <Button
+                          key={s}
+                          size="sm"
+                          variant={qaActive === s ? "default" : "outline"}
+                          onClick={() => setQaActive(s)}
+                          className="whitespace-nowrap"
+                        >
+                          {SYSTEM_LABELS[s]}
+                        </Button>
+                      ))}
+                    </div>
                   </div>
                   <span className="text-xs text-muted-foreground truncate max-w-[60%]">
                     Target: {resolveSnowEmail() || search || "(unknown)"}
@@ -1609,104 +1764,158 @@ export default function HomePage() {
                 {/* Buttons per active tab (3 each) */}
                 <div className="rounded-lg border bg-gradient-to-r from-muted/60 to-background p-3 sm:p-4">
                   {qaActive === "ping-federate" && qaEnabledTabs["ping-federate"] && (
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2 justify-start">
                       <Button size="sm" variant="secondary" onClick={async () => {
                         setPfOpsTitle("Ping Federate — User Info"); setPfOpsOpen(true); setPfOpsLoading(true);
                         try { const r = await fetch("/api/pf/userinfo"); const j = await r.json().catch(() => ({})); setPfOpsData(j?.data ?? j); } catch { setPfOpsData({ error: "Failed to load User Info" }); } finally { setPfOpsLoading(false); }
-                      }}>User Info</Button>
+                      }} title="User information">
+                        <User className="h-4 w-4 mr-1" />
+                        User Info
+                      </Button>
                       <Button size="sm" variant="secondary" onClick={async () => {
                         setPfOpsTitle("Ping Federate — OIDC Connections"); setPfOpsOpen(true); setPfOpsLoading(true);
                         try { const r = await fetch("/api/pf/oidc"); const j = await r.json().catch(() => ({})); setPfOpsData(j?.data ?? j); } catch { setPfOpsData({ error: "Failed to load OIDC connections" }); } finally { setPfOpsLoading(false); }
-                      }}>OIDC</Button>
+                      }} title="OIDC connections">
+                        <Globe className="h-4 w-4 mr-1" />
+                        OIDC
+                      </Button>
                       <Button size="sm" variant="secondary" onClick={async () => {
                         setPfOpsTitle("Ping Federate — SAML Connections"); setPfOpsOpen(true); setPfOpsLoading(true);
                         try { const r = await fetch("/api/pf/saml"); const j = await r.json().catch(() => ({})); setPfOpsData(j?.data ?? j); } catch { setPfOpsData({ error: "Failed to load SAML connections" }); } finally { setPfOpsLoading(false); }
-                      }}>SAML</Button>
+                      }} title="SAML connections">
+                        <Shield className="h-4 w-4 mr-1" />
+                        SAML
+                      </Button>
                     </div>
                   )}
 
                   {qaActive === "ping-directory" && qaEnabledTabs["ping-directory"] && (
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2 justify-start">
                       <Button size="sm" variant="secondary" onClick={async () => {
                         setPfOpsTitle("Ping Directory — Profile"); setPfOpsOpen(true); setPfOpsLoading(true);
                         try { const r = await fetch("/api/pd/profile"); const j = await r.json().catch(() => ({})); setPfOpsData(j?.data ?? j);} catch { setPfOpsData({ error: "Failed to load profile" }); } finally { setPfOpsLoading(false);} 
-                      }}>Profile</Button>
+                      }} title="Profile">
+                        <Database className="h-4 w-4 mr-1" />
+                        Profile
+                      </Button>
                       <Button size="sm" variant="secondary" onClick={async () => {
                         setPfOpsTitle("Ping Directory — Groups"); setPfOpsOpen(true); setPfOpsLoading(true);
                         try { const r = await fetch("/api/pd/groups"); const j = await r.json().catch(() => ({})); setPfOpsData(j?.data ?? j);} catch { setPfOpsData({ error: "Failed to load groups" }); } finally { setPfOpsLoading(false);} 
-                      }}>Groups</Button>
+                      }} title="Groups">
+                        <Users className="h-4 w-4 mr-1" />
+                        Groups
+                      </Button>
                       <Button size="sm" variant="secondary" onClick={async () => {
                         setPfOpsTitle("Ping Directory — Audit"); setPfOpsOpen(true); setPfOpsLoading(true);
                         try { const r = await fetch("/api/pd/audit"); const j = await r.json().catch(() => ({})); setPfOpsData(j?.data ?? j);} catch { setPfOpsData({ error: "Failed to load audit" }); } finally { setPfOpsLoading(false);} 
-                      }}>Audit</Button>
+                      }} title="Audit">
+                        <History className="h-4 w-4 mr-1" />
+                        Audit
+                      </Button>
                     </div>
                   )}
 
                   {qaActive === "ping-mfa" && qaEnabledTabs["ping-mfa"] && (
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2 justify-start">
                       <Button size="sm" variant="secondary" onClick={async () => {
                         setPfOpsTitle("Ping MFA — Status"); setPfOpsOpen(true); setPfOpsLoading(true);
                         try { const r = await fetch("/api/mfa/status"); const j = await r.json().catch(() => ({})); setPfOpsData(j?.data ?? j);} catch { setPfOpsData({ error: "Failed to load status" }); } finally { setPfOpsLoading(false);} 
-                      }}>Status</Button>
+                      }} title="Status">
+                        <Status className="h-4 w-4 mr-1" />
+                        Status
+                      </Button>
                       <Button size="sm" variant="secondary" onClick={async () => {
                         setPfOpsTitle("Ping MFA — Devices"); setPfOpsOpen(true); setPfOpsLoading(true);
                         try { const r = await fetch("/api/mfa/devices"); const j = await r.json().catch(() => ({})); setPfOpsData(j?.data ?? j);} catch { setPfOpsData({ error: "Failed to load devices" }); } finally { setPfOpsLoading(false);} 
-                      }}>Devices</Button>
+                      }} title="Devices">
+                        <Device className="h-4 w-4 mr-1" />
+                        Devices
+                      </Button>
                       <Button size="sm" variant="secondary" onClick={async () => {
                         setPfOpsTitle("Ping MFA — Events"); setPfOpsOpen(true); setPfOpsLoading(true);
                         try { const r = await fetch("/api/mfa/events"); const j = await r.json().catch(() => ({})); setPfOpsData(j?.data ?? j);} catch { setPfOpsData({ error: "Failed to load events" }); } finally { setPfOpsLoading(false);} 
-                      }}>Events</Button>
+                      }} title="Events">
+                        <Event className="h-4 w-4 mr-1" />
+                        Events
+                      </Button>
                     </div>
                   )}
 
                   {qaActive === "azure-ad" && qaEnabledTabs["azure-ad"] && (
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2 justify-start">
                       <Button size="sm" variant="secondary" onClick={async () => {
                         setPfOpsTitle("Azure AD — User"); setPfOpsOpen(true); setPfOpsLoading(true);
                         try { const r = await fetch("/api/aad/user"); const j = await r.json().catch(() => ({})); setPfOpsData(j?.data ?? j);} catch { setPfOpsData({ error: "Failed to load user" }); } finally { setPfOpsLoading(false);} 
-                      }}>User</Button>
+                      }} title="User">
+                        <User className="h-4 w-4 mr-1" />
+                        User
+                      </Button>
                       <Button size="sm" variant="secondary" onClick={async () => {
                         setPfOpsTitle("Azure AD — Groups"); setPfOpsOpen(true); setPfOpsLoading(true);
                         try { const r = await fetch("/api/aad/groups"); const j = await r.json().catch(() => ({})); setPfOpsData(j?.data ?? j);} catch { setPfOpsData({ error: "Failed to load groups" }); } finally { setPfOpsLoading(false);} 
-                      }}>Groups</Button>
+                      }} title="Groups">
+                        <Users className="h-4 w-4 mr-1" />
+                        Groups
+                      </Button>
                       <Button size="sm" variant="secondary" onClick={async () => {
                         setPfOpsTitle("Azure AD — Sign-ins"); setPfOpsOpen(true); setPfOpsLoading(true);
                         try { const r = await fetch("/api/aad/signins"); const j = await r.json().catch(() => ({})); setPfOpsData(j?.data ?? j);} catch { setPfOpsData({ error: "Failed to load sign-ins" }); } finally { setPfOpsLoading(false);} 
-                      }}>Sign-ins</Button>
+                      }} title="Sign-ins">
+                        <Signin className="h-4 w-4 mr-1" />
+                        Sign-ins
+                      </Button>
                     </div>
                   )}
 
                   {qaActive === "cyberark" && qaEnabledTabs["cyberark"] && (
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2 justify-start">
                       <Button size="sm" variant="secondary" onClick={async () => {
                         setPfOpsTitle("CyberArk — Safes"); setPfOpsOpen(true); setPfOpsLoading(true);
                         try { const r = await fetch("/api/cyberark/safes"); const j = await r.json().catch(() => ({})); setPfOpsData(j?.data ?? j);} catch { setPfOpsData({ error: "Failed to load safes" }); } finally { setPfOpsLoading(false);} 
-                      }}>Safes</Button>
+                      }} title="Safes">
+                        <Vault className="h-4 w-4 mr-1" />
+                        Safes
+                      </Button>
                       <Button size="sm" variant="secondary" onClick={async () => {
                         setPfOpsTitle("CyberArk — Accounts"); setPfOpsOpen(true); setPfOpsLoading(true);
                         try { const r = await fetch("/api/cyberark/accounts"); const j = await r.json().catch(() => ({})); setPfOpsData(j?.data ?? j);} catch { setPfOpsData({ error: "Failed to load accounts" }); } finally { setPfOpsLoading(false);} 
-                      }}>Accounts</Button>
+                      }} title="Accounts">
+                        <Users className="h-4 w-4 mr-1" />
+                        Accounts
+                      </Button>
                       <Button size="sm" variant="secondary" onClick={async () => {
                         setPfOpsTitle("CyberArk — Activity"); setPfOpsOpen(true); setPfOpsLoading(true);
                         try { const r = await fetch("/api/cyberark/activity"); const j = await r.json().catch(() => ({})); setPfOpsData(j?.data ?? j);} catch { setPfOpsData({ error: "Failed to load activity" }); } finally { setPfOpsLoading(false);} 
-                      }}>Activity</Button>
+                      }} title="Activity">
+                        <Activity className="h-4 w-4 mr-1" />
+                        Activity
+                      </Button>
                     </div>
                   )}
 
                   {qaActive === "saviynt" && qaEnabledTabs["saviynt"] && (
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2 justify-start">
                       <Button size="sm" variant="secondary" onClick={async () => {
                         setPfOpsTitle("Saviynt — Roles"); setPfOpsOpen(true); setPfOpsLoading(true);
                         try { const r = await fetch("/api/saviynt/roles"); const j = await r.json().catch(() => ({})); setPfOpsData(j?.data ?? j);} catch { setPfOpsData({ error: "Failed to load roles" }); } finally { setPfOpsLoading(false);} 
-                      }}>Roles</Button>
+                      }} title="Roles">
+                        <Role className="h-4 w-4 mr-1" />
+                        Roles
+                      </Button>
                       <Button size="sm" variant="secondary" onClick={async () => {
                         setPfOpsTitle("Saviynt — Entitlements"); setPfOpsOpen(true); setPfOpsLoading(true);
                         try { const r = await fetch("/api/saviynt/entitlements"); const j = await r.json().catch(() => ({})); setPfOpsData(j?.data ?? j);} catch { setPfOpsData({ error: "Failed to load entitlements" }); } finally { setPfOpsLoading(false);} 
-                      }}>Entitlements</Button>
+                      }} title="Entitlements">
+                        <Entitlement className="h-4 w-4 mr-1" />
+                        Entitlements
+                      </Button>
                       <Button size="sm" variant="secondary" onClick={async () => {
                         setPfOpsTitle("Saviynt — Requests"); setPfOpsOpen(true); setPfOpsLoading(true);
                         try { const r = await fetch("/api/saviynt/requests"); const j = await r.json().catch(() => ({})); setPfOpsData(j?.data ?? j);} catch { setPfOpsData({ error: "Failed to load requests" }); } finally { setPfOpsLoading(false);} 
-                      }}>Requests</Button>
+                      }} title="Requests">
+                        <Request className="h-4 w-4 mr-1" />
+                        Requests
+                      </Button>
                     </div>
                   )}
                 </div>
@@ -1717,13 +1926,13 @@ export default function HomePage() {
 
         {/* SNOW incidents dialog */}
         <Dialog open={snowOpen} onOpenChange={setSnowOpen}>
-          <DialogContent className="max-w-3xl space-y-4">
-            <DialogHeader>
+          <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col space-y-4">
+            <DialogHeader className="flex-shrink-0">
               <DialogTitle className="pr-12">
                 ServiceNow Incidents{snowEmail ? ` — ${snowEmail}` : ''}
               </DialogTitle>
             </DialogHeader>
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center justify-between gap-3 flex-shrink-0">
               <div className="flex items-center gap-2 text-xs">
                 {typeof snowCount === 'number' && (
                   <span className="inline-flex items-center rounded border px-2 py-0.5">Open/In-Progress: {snowCount}</span>
@@ -1732,14 +1941,16 @@ export default function HomePage() {
                   <span className="inline-flex items-center rounded border px-2 py-0.5">Total: {snowItems!.length}</span>
                 )}
               </div>
-              <Button size="sm" variant="outline" onClick={openSnowDialog} disabled={snowLoading}>Refresh</Button>
+              <Button size="sm" variant="outline" onClick={openSnowDialog} disabled={snowLoading} title="Refresh incidents">
+                <RefreshCw className="h-4 w-4" />
+              </Button>
             </div>
             {snowLoading ? (
               <p className="text-sm animate-pulse">Loading incidents...</p>
             ) : snowError ? (
               <p className="text-sm text-red-600">{snowError}</p>
             ) : (snowItems?.length || 0) > 0 ? (
-              <div className="space-y-3 max-h-[70vh] overflow-y-auto pr-1">
+              <div className="flex-1 space-y-3 overflow-auto pr-1">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -1782,13 +1993,13 @@ export default function HomePage() {
 
         {/* OPS: Ping Federate quick actions dialog */}
         <Dialog open={pfOpsOpen} onOpenChange={setPfOpsOpen}>
-          <DialogContent className="max-w-3xl">
-            <DialogHeader>
+          <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col">
+            <DialogHeader className="flex-shrink-0">
               <DialogTitle className="flex items-center justify-between w-full pr-12">
                 <span>{pfOpsTitle || 'Ping Federate'}</span>
                 {pfOpsData && (
-                  <Button size="sm" variant="outline" onClick={() => navigator.clipboard.writeText(JSON.stringify(pfOpsData, null, 2))}>
-                    Copy JSON
+                  <Button size="sm" variant="outline" onClick={() => navigator.clipboard.writeText(JSON.stringify(pfOpsData, null, 2))} title="Copy JSON to clipboard">
+                    <Copy className="h-4 w-4" />
                   </Button>
                 )}
               </DialogTitle>
@@ -1796,7 +2007,7 @@ export default function HomePage() {
             {pfOpsLoading ? (
               <p className="text-sm animate-pulse">Loading...</p>
             ) : Array.isArray(pfOpsData) ? (
-              <div className="max-h-[70vh] overflow-y-auto pr-1">
+              <div className="flex-1 overflow-auto pr-1">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -1817,7 +2028,9 @@ export default function HomePage() {
                 </Table>
               </div>
             ) : pfOpsData ? (
-              <pre className="text-xs bg-muted p-2 rounded overflow-x-auto max-h-[70vh] overflow-y-auto">{JSON.stringify(pfOpsData, null, 2)}</pre>
+              <pre className="flex-1 text-xs bg-muted p-2 rounded overflow-auto m-0">
+                {JSON.stringify(pfOpsData, null, 2)}
+              </pre>
             ) : (
               <p className="text-sm text-muted-foreground">No data available</p>
             )}
@@ -1843,7 +2056,9 @@ export default function HomePage() {
                       onChange={(e) => setMinutes(Math.max(1, Number(e.target.value)))}
                     />
                   </div>
-                  <Button size="sm" onClick={loadRecentFailures} disabled={opsLoading}>Refresh</Button>
+                  <Button size="sm" variant="outline" onClick={loadRecentFailures} disabled={opsLoading} title="Refresh recent failures data">
+                    <RefreshCw className="h-4 w-4" />
+                  </Button>
                   {opsError && <span className="text-xs text-red-600">{opsError}</span>}
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1899,6 +2114,7 @@ export default function HomePage() {
           {(() => {
             const showOpsTiles = role === "ops" && !!features?.opsShowTilesAfterSearch && hasSearched;
             const isOps = role === "ops";
+            const anyVisible = visibleSystems.length > 0;
             if (!anyEnabled) {
               return (
                 <Card>
@@ -1916,9 +2132,25 @@ export default function HomePage() {
             if (isOps && !showOpsTiles) {
               return <></>;
             }
+            if (!anyVisible) {
+              return (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>No cards visible</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">
+                      All system cards are hidden via settings. Open Settings to enable some.
+                    </p>
+                  </CardContent>
+                </Card>
+              );
+            }
             return (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {orderedSystems.map((sys) => (
+                {orderedSystems
+                  .filter(sys => visibleSystems.includes(sys))
+                  .map((sys) => (
                   <SystemCard
                     key={sys}
                     name={SYSTEM_LABELS[sys]}
@@ -1926,6 +2158,7 @@ export default function HomePage() {
                     enabled={!!enabled[sys]}
                     token={token!}
                     role={role!}
+                    email={email!}
                   />
                 ))}
               </div>

@@ -1,22 +1,13 @@
 {
-  "credentialSource": "env",             
-  "useMocks": true,                  
+  "credentialSource": "env",
+  "useMocks": true,
   "useMockAuth": true,
   "systems": {
     "ping-directory": true,
     "ping-federate": true,
-    "ping-mfa": true,
     "cyberark": true,
     "saviynt": true,
-    "azure-ad": false
-  },
-  "systemsOrder": [
-    "ping-directory",
-    "ping-federate",
-    "ping-mfa",
-    "cyberark",
-    "saviynt",
-    "azure-ad"
-  ],
-  "opsShowTilesAfterSearch": false
+    "azure-ad": true,
+    "ping-mfa": true
+  }
 }

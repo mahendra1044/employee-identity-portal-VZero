@@ -1,0 +1,44 @@
+{
+  "ping-directory": [
+    "Verify core user attributes like name, email, and department; missing values can block authentication.",
+    "Check account status (active/locked/suspended); locked accounts prevent logins across systems.",
+    "Review group memberships; outdated groups may deny access to apps or resources.",
+    "Inspect password policies; expired passwords require reset via self-service portal.",
+    "Look for duplicate entries; they can cause sync issues with other ID systems."
+  ],
+  "ping-federate": [
+    "Examine SSO configuration and last login timestamp; token expiration often causes access denials.",
+    "Validate OIDC/SAML connections; misconfigurations lead to federation errors during sign-in.",
+    "Check session details; inactive sessions may need re-authentication for security.",
+    "Review policy enforcements; conditional access rules can block based on device or location.",
+    "Monitor audit logs for recent failures; patterns indicate broader federation issues."
+  ],
+  "cyberark": [
+    "Confirm Safe membership; users without access can't retrieve credentials from vaults.",
+    "Check account status (active/pending/expired); expired creds block app logins.",
+    "Verify platform mappings; incorrect mappings prevent automatic credential rotation.",
+    "Review approval workflows; pending requests delay access to privileged accounts.",
+    "Inspect usage history; excessive checkouts may trigger security alerts or limits."
+  ],
+  "saviynt": [
+    "List assigned roles and entitlements; conflicts can revoke unintended access.",
+    "Track access requests; pending approvals often cause delays in provisioning.",
+    "Validate entitlement mappings; mismatches lead to over- or under-provisioning.",
+    "Check certification campaigns; failed certs may suspend entitlements.",
+    "Review SOD (segregation of duties) violations; they flag risky role combinations."
+  ],
+  "azure-ad": [
+    "Inspect group memberships; removal from groups blocks resource access.",
+    "Review sign-in history; repeated failures indicate conditional access blocks.",
+    "Verify license assignments; missing licenses disable premium features.",
+    "Check MFA enrollment; unenrolled users face sign-in challenges.",
+    "Examine app registrations; consent issues prevent SSO to SaaS apps."
+  ],
+  "ping-mfa": [
+    "Confirm enrollment status; unenrolled users can't complete MFA challenges.",
+    "List enrolled devices; unregistered phones lead to push notification failures.",
+    "Review recent events; timeouts or denials suggest device sync problems.",
+    "Check policy compliance; bypassed MFA may violate security requirements.",
+    "Verify backup methods; without alternatives, lost devices block access entirely."
+  ]
+}

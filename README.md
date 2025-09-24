@@ -15,10 +15,6 @@
 - System tile header layout (employee view)
   - Buttons are now consistently aligned and wrap nicely on smaller screens
   - System name is more prominent and always visible (truncates gracefully)
-- Server-side email endpoint (mock)
-  - Replaced mailto with a server API to record email requests for audit/debug
-  - Route: `POST /api/send-email`
-  - Logs mock payloads to the server console and returns `{ ok: true }`
 - Configurable card order (deployment-time)
   - New optional `systemsOrder` array in backend/config/features.json controls the order of the six system cards on the dashboard.
   - Missing or invalid keys are ignored; any systems not listed are appended in the default order.
@@ -85,6 +81,34 @@ Example mock (already provided):
   - `number`, `short_description`, `state` (open|in_progress|closed), `priority`, `updatedAt`, `assigned_to`
 - Save and restart backend; reload the app.
 
+## Mock Ticket Submission
+
+The `/api/submit-snow-ticket` endpoint simulates ServiceNow ticket creation for demo purposes. It generates mock ticket numbers and logs details to the console.
+
+### Configuration
+- **Environment Variable**: Set `MOCK_FAILURE_SYSTEMS` in `.env.local` to comma-separated systems that should simulate ticket creation failures (e.g., `MOCK_FAILURE_SYSTEMS=cyberark`).
+  - Default: `['cyberark']` (failure for CyberArk).
+  - All other systems always succeed with detailed mock ticket data.
+
+### Scenarios
+- **Success (any system except CyberArk)**:
+  - When submitting from a system card (e.g., Ping Directory, Ping MFA), it creates a mock ticket (e.g., `INC-ABC12345`).
+  - Logs full mock ticket object to console, including payload excerpt, status, priority, etc.
+  - Returns ticket details in response for frontend toast.
+
+- **Failure (CyberArk)**:
+  - When submitting from a CyberArk card, simulates failure (HTTP 500).
+  - Logs error details to console with reason "Mock failure scenario".
+  - Frontend shows error toast; useful for testing error handling.
+
+### Testing
+1. Login as employee/ops.
+2. Load data for any system (e.g., Ping Directory) → Click "Submit SNOW ticket" → Check console for success log and toast "SNOW ticket submitted: INC-...".
+3. Load data for CyberArk → Click "Submit SNOW ticket" → Check console for failure log and error toast.
+4. To customize failures: Edit `.env.local` with `MOCK_FAILURE_SYSTEMS=system1,system2`, restart dev server.
+
+This setup allows extending to real ServiceNow integration by replacing the mock logic while reusing the configurable failure simulation for testing.
+
 ## How to Use
 
 ### Copy JSON
@@ -100,13 +124,14 @@ Example mock (already provided):
 - Each system tile includes an "HTML View" button that opens a key/value popup for the current system's data.
 - If Details are already loaded, it uses those; otherwise it shows Initial data.
 
-### Send Email (server-side mock)
-- Each system tile includes a "Send Email" button.
-- This posts to a Next.js API route instead of opening your inbox.
-- Endpoint: `POST /api/send-email`
-  - Request: `{ to: string, subject: string, body: string, system: string, payload: any }`
-  - Response: `{ ok: true, message: "Email queued (mock)", to, system, timestamp }`
-- Server will log a concise mock entry with recipient, subject, preview of body, a payload snippet, and timestamp.
+### Submit SNOW Ticket
+- Each system tile includes a "Submit SNOW ticket" button.
+- This posts to a Next.js API route that simulates ticket creation.
+- Endpoint: `POST /api/submit-snow-ticket`
+  - Request: `{ system: string, payload: any, userEmail: string }`
+  - Response: `{ ticketNumber: string, ok: true }` on success, or error details on failure.
+- Server will log the submission details (system, email, payload snippet) to console.
+- CyberArk includes an additional "Test failure" button for error scenario testing.
 
 ## Employee "Educate me" guide
 
@@ -114,9 +139,7 @@ A lightweight user guide is available for employees to quickly learn which ident
 
 - Location: Header → "Educate me" (only visible for role = employee)
 - Behavior: Opens a dialog with categorized cards (MFA, Safe/Vault, Directory)
-  - Each card includes a short summary, a sample JSON snippet, and actions:
-    - Copy sample JSON
-    - Send mail to the appropriate support queue (uses existing /api/send-email)
+  - Each card includes a short summary and a sample JSON snippet.
 
 ### Configure at deploy time
 
@@ -164,7 +187,6 @@ Categories currently included (all with shared mock data):
 
 Actions:
 - Copy sample JSON: copies the rendered mock snippet
-- Send mail to support: posts to /api/send-email with the relevant support address and the sample payload
 
 No per-user persistence or customization is stored; the guide is the same for all employees by design.
 
@@ -174,7 +196,6 @@ No per-user persistence or customization is stored; the guide is the same for al
 - Login with an employee account (any email not starting with ops@ or management@)
 - Confirm the header shows the "Educate me" button; click to open the guide
 - Click "Copy sample JSON" and verify your clipboard contents
-- Click "Send mail to support" to exercise /api/send-email
 
 ### Notes
 
@@ -184,9 +205,108 @@ No per-user persistence or customization is stored; the guide is the same for al
 
 ## Configuration
 
-### Support email mapping
-- Edit `src/lib/support-emails.ts` to change the destination team addresses per system.
-- Helper: `getSupportEmail(system: "ping-directory" | "ping-federate" | "cyberark" | "saviynt" | "azure-ad" | "ping-mfa")`
+### Environment Variables (.env)
+
+Configure both frontend and backend from environment files. Frontend variables must be prefixed with NEXT_PUBLIC_.
+
+- Frontend (Next.js) — create .env.local at repo root (copy from .env.example):
+  - NEXT_PUBLIC_API_BASE — Base URL for backend API (default: http://localhost:3001)
+  - NEXT_PUBLIC_EDUCATE_GUIDE=true|false — Toggle the employee "Educate me" guide (env takes precedence over backend features)
+  - NEXT_PUBLIC_QA_PING_DIRECTORY=true|false — Enable/disable Ping Directory tab in Ops Quick Actions
+  - NEXT_PUBLIC_QA_PING_FEDERATE=true|false — Enable/disable Ping Federate tab
+  - NEXT_PUBLIC_QA_CYBERARK=true|false — Enable/disable CyberArk tab
+  - NEXT_PUBLIC_QA_SAVIYNT=true|false — Enable/disable Saviynt tab
+  - NEXT_PUBLIC_QA_AZURE_AD=true|false — Enable/disable Azure AD tab
+  - NEXT_PUBLIC_QA_PING_MFA=true|false — Enable/disable Ping MFA tab
+  - NEXT_PUBLIC_SPLUNK_URL — URL for "Take Me to Splunk" (default: https://splunk.company.com)
+  - NEXT_PUBLIC_CLOUDWATCH_URL — URL for "Take Me to Cloud Watch" (default: https://console.aws.amazon.com/cloudwatch/home?region=us-east-1)
+  - MOCK_FAILURE_SYSTEMS — Comma-separated systems to simulate ticket creation failures (default: cyberark)
+
+Notes:
+- Only NEXT_PUBLIC_* variables are exposed to the browser.
+- Update .env.local and rebuild/redeploy to apply changes in production builds.
+
+- Backend (Express) — edit backend/.env:
+  - PORT — Express server port (default: 3001)
+  - JWT_SECRET — JWT signing secret for mock auth (change for production)
+  - LOG_LEVEL — Winston log level (error|warn|info|http|verbose|debug|silly)
+
+Getting started:
+- cp .env.example .env.local (root) and adjust as needed
+- Ensure backend/.env exists (sample already provided)
+
+### Environment files: what goes where (Education)
+
+- .env.local (frontend)
+  - Path: ./ .env.local (repo root)
+  - Used by: Next.js frontend
+  - Exposure: Only variables starting with NEXT_PUBLIC_ are bundled into the browser. Never put secrets here without NEXT_PUBLIC_ intent.
+  - Typical values: NEXT_PUBLIC_API_BASE, NEXT_PUBLIC_* feature flags, public URLs (Splunk/CloudWatch)
+
+- backend/.env (backend)
+  - Path: ./backend/.env
+  - Used by: Express server only (server-side)
+  - Exposure: NOT exposed to the browser. Safe place for secrets.
+  - Typical values: PORT, JWT_SECRET, LOG_LEVEL, and any system credentials (e.g., PING_DIR_API_KEY, service tokens)
+
+- What goes where
+  - Public config needed by the browser/UI → .env.local with NEXT_PUBLIC_ prefix
+  - Secrets and server-only settings (API keys, tokens) → backend/.env without NEXT_PUBLIC_
+
+- Deployment guidance
+  - Frontend hosting (e.g., Vercel/Netlify): set NEXT_PUBLIC_* variables in the host's UI (build-time env)
+  - Backend hosting (e.g., Node server/PM2/Docker): set backend/.env values on the server or secret manager
+  - Keep prefixes consistent: if a value must be read in the browser, it must be prefixed NEXT_PUBLIC_
+
+- Quick setup steps
+  1) cp .env.example .env.local (at repo root)
+  2) Edit .env.local → set NEXT_PUBLIC_API_BASE=http://localhost:3001 (or your backend URL)
+  3) Edit backend/.env → set PORT, JWT_SECRET, etc.
+  4) Restart frontend and backend for changes to take effect
+
+### Example Scenario: Updating API_BASE Didn't Take Effect Until Backend Port Change
+
+**Scenario**: You're viewing the dashboard at route `/` (logged in, seeing system cards). You update `NEXT_PUBLIC_API_BASE=http://localhost:3002` in `.env.local` but API calls (e.g., fetching system data) still fail or use the old port. It only works after editing `backend/.env` to `PORT=3002` and restarting the backend.
+
+**Why This Happens** (Step-by-Step Explanation):
+1. **Frontend Role (`.env.local`)**: This file tells your Next.js app (running on `localhost:3000`) where to send API requests. Updating `NEXT_PUBLIC_API_BASE=http://localhost:3002` changes the `API_BASE` constant in `src/app/page.tsx` to point to port 3002.
+   - Effect: The browser now tries to `fetch("http://localhost:3002/api/own-ping-directory")` instead of 3001.
+   - But: If nothing is listening on port 3002 (your backend is still on 3001), requests fail (e.g., "Failed to fetch" errors in console or "Error loading data" in UI).
+
+2. **Backend Role (`backend/.env`)**: This controls your Express server (separate from frontend).
+   - Default: `PORT=3001` means the backend listens on 3001.
+   - Without changing it, your backend isn't running on 3002—requests to 3002 go nowhere.
+
+3. **The Fix (What Made It Work)**: Editing `PORT=3002` in `backend/.env` and restarting the backend starts it listening on 3002, matching the frontend's new config. Now requests succeed.
+
+**Steps to Reproduce/Test This Scenario**:
+1. Start both servers normally:
+   - Backend on 3001 (`cd backend && node server.js`).
+   - Frontend on 3000 (`npm run dev`).
+   - Login and view dashboard at `/`—API calls work (e.g., system cards load data).
+
+2. Update frontend only:
+   - Edit `.env.local`: `NEXT_PUBLIC_API_BASE=http://localhost:3002`.
+   - Restart frontend (`npm run dev`).
+   - Refresh `/` → System cards show "Error loading data" (requests to empty 3002 fail).
+
+3. Update backend too:
+   - Edit `backend/.env`: `PORT=3002`.
+   - Restart backend (`cd backend && node server.js`—now on 3002).
+   - Refresh `/` → Dashboard works again (frontend hits backend on 3002).
+
+**Key Takeaways**:
+- Frontend env (`.env.local`) = "Where to call" (client-side URLs).
+- Backend env (`backend/.env`) = "Where I listen" (server port).
+- Always match them: Frontend's `NEXT_PUBLIC_API_BASE` must point to backend's `PORT`.
+- Restart *both* after env changes (no hot-reload).
+- Check browser DevTools > Network tab: See exact URLs called and any 404/CORS errors.
+- Production: Frontend deploys to a domain (e.g., Vercel); backend to another (e.g., Render). Set `NEXT_PUBLIC_API_BASE=https://your-backend.com`.
+
+If issues persist (e.g., CORS, wrong URLs), check console logs, restart services, and ensure ports don't conflict (e.g., kill processes on used ports with `lsof -i :3001` on macOS/Linux).
+
+### Support Configuration
+- No per-system support email mapping is currently implemented. For support workflows, use the SNOW ticket submission feature.
 
 ### Card layout order (NEW)
 
@@ -227,9 +347,6 @@ Notes
   - The card grid now renders by mapping over `orderedSystems`, using a `SYSTEM_LABELS` map for human-friendly names.
   - This is read from `GET http://localhost:3001/config/features` post-login, so changes take effect when users log in or refresh.
 - No backend code change is required beyond supplying `systemsOrder` in `backend/config/features.json`.
-
-- File: `src/app/api/send-email/route.ts`
-  - Mock server endpoint that logs email requests and returns success
 
 - File: `src/app/page.tsx` (Ping Federate quick actions)
   - On Ping Federate card, for role = employee, three small buttons render next to "Copy JSON": User Info, OIDC, SAML
@@ -325,7 +442,7 @@ Health checks
 - In mock mode, role is inferred from email prefix and any password works.
 
 ## Mock test data & scenarios
-- Mock mode is ON by default: backend/config/features.json → `{"useMocks": true, "useMockAuth": true}`
+- Mock mode is ON by default: backend/config/features.json → `{\"useMocks\": true, \"useMockAuth\": true}`
 - Files (backend/mocks):
   - ping-directory-initial.json / ping-directory-details.json
   - ping-federate-initial.json / ping-federate-details.json
@@ -600,70 +717,11 @@ All endpoints return `{ data: ... }` to keep the UI contract stable for future r
 - Clicking a button opens a dialog that renders a table (for arrays) or JSON (for objects) and includes a Copy JSON button
 
 ### Troubleshooting
-- If a button shows an error, verify the corresponding route file exists under `src/app/api/...` and that your frontend has been rebuilt after any env changes
-- If the card doesn't appear, make sure:
-  - You are logged in as ops (e.g., ops@company.com)
-  - You performed a successful search first
-  - At least one tab is enabled (via env or features.json)
-
-## Ops Quick Actions Tools Buttons (NEW)
-
-These two additional buttons appear in the Quick Actions card (ops-only, after search) for quick navigation to monitoring tools. They open the URLs in a new browser tab.
-
-### Buttons
-- "Take Me to Splunk": Opens Splunk dashboard.
-- "Take Me to Cloud Watch": Opens AWS Cloud Watch console (us-east-1 default region).
-
-### Configuration (Environment Variables)
-
-URLs are configurable via frontend environment variables (build-time). If not set, defaults apply:
-
-- `NEXT_PUBLIC_SPLUNK_URL`: Splunk app URL (default: "https://splunk.company.com")
-- `NEXT_PUBLIC_CLOUDWATCH_URL`: Cloud Watch URL (default: "https://console.aws.amazon.com/cloudwatch/home?region=us-east-1")
-
-Steps to update:
-1. Add/update in `.env.local` (or deployment env):
-   ```
-   NEXT_PUBLIC_SPLUNK_URL=https://your-splunk-instance.com/app/search
-   NEXT_PUBLIC_CLOUDWATCH_URL=https://console.aws.amazon.com/cloudwatch/home?region=us-west-2
-   ```
-2. Rebuild/redeploy the frontend (`npm run build && npm run start` or your CI/CD).
-3. Log in as ops, perform a search → Quick Actions card shows the buttons with updated URLs.
-
-Notes:
-- Buttons use `window.open(..., "_blank", "noopener,noreferrer")` for security (no referrer, new tab).
-- Visibility: Ops-only, appears after search (same as tabs).
-- No backend involvement; purely frontend navigation.
-
-## API Overview
-- POST /auth/login → { token, role, email }
-- GET /config/features → feature flags object
-- GET /api/own-:system → initial data for current user
-- GET /api/own-:system/details → extended data for current user
-- GET /api/all-users?limit=50&offset=0 → ops-only list
-- GET /api/search-employee/:query → limited PD + MFA results
-- GET /api/pf/userinfo → mocked Ping Federate UserInfo for current employee (frontend-only mock)
-- GET /api/pf/oidc → mocked list of OIDC connections (5 key fields per connection)
-- GET /api/pf/saml → mocked list of SAML connections (5 key fields per connection)
-
-Responses
-- 200: `{ data: any }` for system endpoints; or domain objects for search/all-users
-- 403: RBAC denial (see roles.json)
-- 404: Feature/system disabled (see features.json)
-
-
-## Scripts
-- npm run dev → Frontend only (Next.js)
-- npm run dev:be → Installs backend deps and starts Express
-- npm run dev:all → Runs frontend + backend together (recommended for local dev)
-
-
-## Troubleshooting
-- CORS/Network: Ensure backend is running on 3001; frontend calls http://localhost:3001 directly
+- CORS/Network: Ensure backend is running on 3001; frontend calls the URL configured in `NEXT_PUBLIC_API_BASE`.
 - 404 errors: Likely system disabled in features.json
 - 403 errors: Role lacks permission in roles.json
 - Token issues: Click "Sign out" (clears localStorage) and log back in
-- Port conflicts: Change PORT in backend/.env and update API_BASE in src/app/page.tsx if needed
+- Port conflicts: Change `PORT` in backend/.env and set `NEXT_PUBLIC_API_BASE` in `.env.local` accordingly
 - Backend not starting: Verify `backend/server.js` exists and that you ran `npm install` at the repo root (or `cd backend && npm install`).
 - Windows path error (ENOENT backend/backend/...): Fixed. The server now resolves paths relative to `backend/server.js`. Pull latest and use `npm run dev:all` (avoid manually changing working directories when starting the backend).
 

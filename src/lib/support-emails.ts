@@ -1,18 +1,11 @@
-export type SystemKey =
-  | "ping-directory"
-  | "ping-federate"
-  | "cyberark"
-  | "saviynt"
-  | "azure-ad"
-  | "ping-mfa";
-
-export const SUPPORT_EMAILS: Record<SystemKey, string> = {
-  "ping-directory": "ops@pingdirectoryteam.com",
-  "ping-federate": "ops@pingfedteam.com",
-  cyberark: "ops@cyberarkteam.com",
-  saviynt: "ops@saviyntteam.com",
-  "azure-ad": "ops@azureadteam.com",
-  "ping-mfa": "ops@pingmfa.team.com",
-};
-
-export const getSupportEmail = (system: SystemKey) => SUPPORT_EMAILS[system];
+export function getSupportEmail(system: string): string {
+  const emails: Record<string, string> = {
+    "ping-directory": "support-directory@company.com",
+    "ping-federate": "support-federate@company.com",
+    "cyberark": "support-cyberark@company.com",
+    "saviynt": "support-saviynt@company.com",
+    "azure-ad": "support-azure@company.com",
+    "ping-mfa": "support-mfa@company.com",
+  };
+  return emails[system] || "support@company.com";
+}
