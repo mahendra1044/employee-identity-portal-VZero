@@ -1,27 +1,499 @@
 {
-  "lastLogin": "2025-09-17T14:22:11Z",
-  "activeSessions": 2,
-  "ssoProviders": ["Okta", "AzureAD"],
-  "idp": "PingFederate",
-  "sp": ["Slack", "Github", "Jira", "Confluence", "Datadog"],
-  "tokenStatus": "Valid",
-  "mfaEnforced": true,
-  "recentApps": ["Jira", "Confluence", "Datadog", "Github"],
-  "sessionTimeoutMinutes": 60,
-  "sessions": [
-    { "sessionId": "s-101", "app": "Jira", "ip": "192.168.1.20", "startedAt": "2025-09-17T13:40:00Z" },
-    { "sessionId": "s-102", "app": "Github", "ip": "192.168.1.21", "startedAt": "2025-09-17T14:10:00Z" }
-  ],
-  "tokenClaims": {
-    "sub": "u1001",
-    "email": "alice.johnson@company.com",
-    "aud": ["jira", "github"],
-    "iss": "pingfederate.company.com",
-    "exp": 1768765200
+  "u1001": {
+    "lastLogin": "2025-09-17T14:22:11Z",
+    "activeSessions": 2,
+    "ssoProviders": ["Okta", "AzureAD"],
+    "idp": "PingFederate",
+    "sp": ["Slack", "Github", "Jira", "Confluence", "Datadog"],
+    "tokenStatus": "Valid",
+    "mfaEnforced": true,
+    "recentApps": ["Jira", "Confluence", "Datadog", "Github"],
+    "sessionTimeoutMinutes": 60,
+    "sessions": [
+      { "sessionId": "s-101", "app": "Jira", "ip": "192.168.1.20", "startedAt": "2025-09-17T13:40:00Z" },
+      { "sessionId": "s-102", "app": "Github", "ip": "192.168.1.21", "startedAt": "2025-09-17T14:10:00Z" }
+    ],
+    "tokenClaims": {
+      "sub": "u1001",
+      "email": "alice.johnson@company.com",
+      "aud": ["jira", "github"],
+      "iss": "pingfederate.company.com",
+      "exp": 1768765200
+    },
+    "audit": [
+      { "ts": "2025-09-16T16:12:00Z", "event": "LoginSuccess", "app": "Jira" },
+      { "ts": "2025-09-15T09:48:00Z", "event": "LoginSuccess", "app": "Github" },
+      { "ts": "2025-09-14T18:05:00Z", "event": "MFAChallenge", "status": "Passed" }
+    ]
   },
-  "audit": [
-    { "ts": "2025-09-16T16:12:00Z", "event": "LoginSuccess", "app": "Jira" },
-    { "ts": "2025-09-15T09:48:00Z", "event": "LoginSuccess", "app": "Github" },
-    { "ts": "2025-09-14T18:05:00Z", "event": "MFAChallenge", "status": "Passed" }
-  ]
+  "u1002": {
+    "lastLogin": "2025-09-16T09:05:00Z",
+    "activeSessions": 3,
+    "ssoProviders": ["Okta", "AzureAD"],
+    "idp": "PingFederate",
+    "sp": ["Slack", "Github", "Jira", "Confluence", "Datadog", "Salesforce"],
+    "tokenStatus": "Valid",
+    "mfaEnforced": true,
+    "recentApps": ["Slack", "Github", "Salesforce"],
+    "sessionTimeoutMinutes": 60,
+    "sessions": [
+      { "sessionId": "s-201", "app": "Slack", "ip": "192.168.1.30", "startedAt": "2025-09-16T08:00:00Z" },
+      { "sessionId": "s-202", "app": "Github", "ip": "192.168.1.31", "startedAt": "2025-09-16T08:30:00Z" },
+      { "sessionId": "s-203", "app": "Salesforce", "ip": "192.168.1.32", "startedAt": "2025-09-16T09:00:00Z" }
+    ],
+    "tokenClaims": {
+      "sub": "u1002",
+      "email": "bob.martin@company.com",
+      "aud": ["slack", "github", "salesforce"],
+      "iss": "pingfederate.company.com",
+      "exp": 1768765200
+    },
+    "audit": [
+      { "ts": "2025-09-15T10:20:00Z", "event": "LoginSuccess", "app": "Slack" },
+      { "ts": "2025-09-14T14:35:00Z", "event": "LoginSuccess", "app": "Github" }
+    ]
+  },
+  "u1003": {
+    "lastLogin": "2025-09-15T11:30:00Z",
+    "activeSessions": 1,
+    "ssoProviders": ["Okta"],
+    "idp": "PingFederate",
+    "sp": ["Slack", "Jira"],
+    "tokenStatus": "Valid",
+    "mfaEnforced": false,
+    "recentApps": ["Jira", "Slack"],
+    "sessionTimeoutMinutes": 60,
+    "sessions": [
+      { "sessionId": "s-301", "app": "Jira", "ip": "192.168.2.10", "startedAt": "2025-09-15T11:00:00Z" }
+    ],
+    "tokenClaims": {
+      "sub": "u1003",
+      "email": "charlie.kim@company.com",
+      "aud": ["jira"],
+      "iss": "pingfederate.company.com",
+      "exp": 1768765200
+    },
+    "audit": [
+      { "ts": "2025-09-14T09:15:00Z", "event": "LoginSuccess", "app": "Jira" }
+    ]
+  },
+  "u1004": {
+    "lastLogin": "2025-09-10T18:12:44Z",
+    "activeSessions": 1,
+    "ssoProviders": ["AzureAD"],
+    "idp": "PingFederate",
+    "sp": ["Slack", "Workday"],
+    "tokenStatus": "Valid",
+    "mfaEnforced": true,
+    "recentApps": ["Workday", "Slack"],
+    "sessionTimeoutMinutes": 60,
+    "sessions": [
+      { "sessionId": "s-401", "app": "Workday", "ip": "192.168.1.40", "startedAt": "2025-09-10T17:00:00Z" }
+    ],
+    "tokenClaims": {
+      "sub": "u1004",
+      "email": "dana.lee@company.com",
+      "aud": ["workday"],
+      "iss": "pingfederate.company.com",
+      "exp": 1768765200
+    },
+    "audit": [
+      { "ts": "2025-09-09T13:45:00Z", "event": "LoginSuccess", "app": "Workday" }
+    ]
+  },
+  "u1005": {
+    "lastLogin": "2025-09-14T10:20:00Z",
+    "activeSessions": 1,
+    "ssoProviders": ["Okta"],
+    "idp": "PingFederate",
+    "sp": ["Slack", "Workday", "BambooHR"],
+    "tokenStatus": "Valid",
+    "mfaEnforced": false,
+    "recentApps": ["BambooHR", "Slack"],
+    "sessionTimeoutMinutes": 60,
+    "sessions": [
+      { "sessionId": "s-501", "app": "BambooHR", "ip": "192.168.3.10", "startedAt": "2025-09-14T09:30:00Z" }
+    ],
+    "tokenClaims": {
+      "sub": "u1005",
+      "email": "evan.torres@company.com",
+      "aud": ["bamboohr"],
+      "iss": "pingfederate.company.com",
+      "exp": 1768765200
+    },
+    "audit": [
+      { "ts": "2025-09-13T11:00:00Z", "event": "LoginSuccess", "app": "BambooHR" }
+    ]
+  },
+  "u1006": {
+    "lastLogin": "2025-09-17T08:45:00Z",
+    "activeSessions": 2,
+    "ssoProviders": ["Okta", "AzureAD"],
+    "idp": "PingFederate",
+    "sp": ["Slack", "CyberArk", "Splunk", "Jira"],
+    "tokenStatus": "Valid",
+    "mfaEnforced": true,
+    "recentApps": ["CyberArk", "Splunk", "Jira"],
+    "sessionTimeoutMinutes": 30,
+    "sessions": [
+      { "sessionId": "s-601", "app": "CyberArk", "ip": "192.168.1.50", "startedAt": "2025-09-17T08:00:00Z" },
+      { "sessionId": "s-602", "app": "Splunk", "ip": "192.168.1.51", "startedAt": "2025-09-17T08:30:00Z" }
+    ],
+    "tokenClaims": {
+      "sub": "u1006",
+      "email": "fatima.khan@company.com",
+      "aud": ["cyberark", "splunk"],
+      "iss": "pingfederate.company.com",
+      "exp": 1768765200
+    },
+    "audit": [
+      { "ts": "2025-09-16T15:20:00Z", "event": "LoginSuccess", "app": "CyberArk" },
+      { "ts": "2025-09-16T10:00:00Z", "event": "MFAChallenge", "status": "Passed" }
+    ]
+  },
+  "u1007": {
+    "lastLogin": "2025-09-16T14:00:00Z",
+    "activeSessions": 2,
+    "ssoProviders": ["Okta"],
+    "idp": "PingFederate",
+    "sp": ["Slack", "HubSpot", "Marketo"],
+    "tokenStatus": "Valid",
+    "mfaEnforced": true,
+    "recentApps": ["HubSpot", "Marketo", "Slack"],
+    "sessionTimeoutMinutes": 60,
+    "sessions": [
+      { "sessionId": "s-701", "app": "HubSpot", "ip": "192.168.4.10", "startedAt": "2025-09-16T13:00:00Z" },
+      { "sessionId": "s-702", "app": "Marketo", "ip": "192.168.4.11", "startedAt": "2025-09-16T13:45:00Z" }
+    ],
+    "tokenClaims": {
+      "sub": "u1007",
+      "email": "george.smith@company.com",
+      "aud": ["hubspot", "marketo"],
+      "iss": "pingfederate.company.com",
+      "exp": 1768765200
+    },
+    "audit": [
+      { "ts": "2025-09-15T16:30:00Z", "event": "LoginSuccess", "app": "HubSpot" }
+    ]
+  },
+  "u1008": {
+    "lastLogin": "2025-09-17T10:15:00Z",
+    "activeSessions": 1,
+    "ssoProviders": ["Okta"],
+    "idp": "PingFederate",
+    "sp": ["Slack", "Figma", "Miro"],
+    "tokenStatus": "Valid",
+    "mfaEnforced": false,
+    "recentApps": ["Figma", "Miro"],
+    "sessionTimeoutMinutes": 60,
+    "sessions": [
+      { "sessionId": "s-801", "app": "Figma", "ip": "192.168.2.20", "startedAt": "2025-09-17T09:30:00Z" }
+    ],
+    "tokenClaims": {
+      "sub": "u1008",
+      "email": "hannah.park@company.com",
+      "aud": ["figma"],
+      "iss": "pingfederate.company.com",
+      "exp": 1768765200
+    },
+    "audit": [
+      { "ts": "2025-09-16T12:00:00Z", "event": "LoginSuccess", "app": "Figma" }
+    ]
+  },
+  "u1009": {
+    "lastLogin": "2025-09-13T13:55:10Z",
+    "activeSessions": 2,
+    "ssoProviders": ["Okta", "AzureAD"],
+    "idp": "PingFederate",
+    "sp": ["Slack", "Github", "Jira", "Confluence"],
+    "tokenStatus": "Valid",
+    "mfaEnforced": true,
+    "recentApps": ["Github", "Jira", "Confluence"],
+    "sessionTimeoutMinutes": 60,
+    "sessions": [
+      { "sessionId": "s-901", "app": "Github", "ip": "192.168.5.10", "startedAt": "2025-09-13T13:00:00Z" },
+      { "sessionId": "s-902", "app": "Jira", "ip": "192.168.5.11", "startedAt": "2025-09-13T13:30:00Z" }
+    ],
+    "tokenClaims": {
+      "sub": "u1009",
+      "email": "ian.chen@company.com",
+      "aud": ["github", "jira"],
+      "iss": "pingfederate.company.com",
+      "exp": 1768765200
+    },
+    "audit": [
+      { "ts": "2025-09-12T15:20:00Z", "event": "LoginSuccess", "app": "Github" },
+      { "ts": "2025-09-11T09:00:00Z", "event": "MFAChallenge", "status": "Passed" }
+    ]
+  },
+  "u1010": {
+    "lastLogin": "2025-09-16T11:30:00Z",
+    "activeSessions": 2,
+    "ssoProviders": ["Okta"],
+    "idp": "PingFederate",
+    "sp": ["Slack", "Jira", "Confluence", "Aha"],
+    "tokenStatus": "Valid",
+    "mfaEnforced": true,
+    "recentApps": ["Aha", "Jira", "Confluence"],
+    "sessionTimeoutMinutes": 60,
+    "sessions": [
+      { "sessionId": "s-1001", "app": "Aha", "ip": "192.168.2.30", "startedAt": "2025-09-16T10:30:00Z" },
+      { "sessionId": "s-1002", "app": "Jira", "ip": "192.168.2.31", "startedAt": "2025-09-16T11:00:00Z" }
+    ],
+    "tokenClaims": {
+      "sub": "u1010",
+      "email": "julia.nguyen@company.com",
+      "aud": ["aha", "jira"],
+      "iss": "pingfederate.company.com",
+      "exp": 1768765200
+    },
+    "audit": [
+      { "ts": "2025-09-15T14:45:00Z", "event": "LoginSuccess", "app": "Aha" }
+    ]
+  },
+  "u1011": {
+    "lastLogin": "2025-09-17T09:00:00Z",
+    "activeSessions": 1,
+    "ssoProviders": ["Okta"],
+    "idp": "PingFederate",
+    "sp": ["Slack", "Salesforce"],
+    "tokenStatus": "Valid",
+    "mfaEnforced": false,
+    "recentApps": ["Salesforce", "Slack"],
+    "sessionTimeoutMinutes": 60,
+    "sessions": [
+      { "sessionId": "s-1101", "app": "Salesforce", "ip": "192.168.6.10", "startedAt": "2025-09-17T08:30:00Z" }
+    ],
+    "tokenClaims": {
+      "sub": "u1011",
+      "email": "kevin.patel@company.com",
+      "aud": ["salesforce"],
+      "iss": "pingfederate.company.com",
+      "exp": 1768765200
+    },
+    "audit": [
+      { "ts": "2025-09-16T10:15:00Z", "event": "LoginSuccess", "app": "Salesforce" }
+    ]
+  },
+  "u1012": {
+    "lastLogin": "2025-09-12T10:20:00Z",
+    "activeSessions": 1,
+    "ssoProviders": ["AzureAD"],
+    "idp": "PingFederate",
+    "sp": ["Slack", "DocuSign", "Clio"],
+    "tokenStatus": "Valid",
+    "mfaEnforced": true,
+    "recentApps": ["DocuSign", "Clio"],
+    "sessionTimeoutMinutes": 60,
+    "sessions": [
+      { "sessionId": "s-1201", "app": "DocuSign", "ip": "192.168.1.60", "startedAt": "2025-09-12T09:30:00Z" }
+    ],
+    "tokenClaims": {
+      "sub": "u1012",
+      "email": "laura.garcia@company.com",
+      "aud": ["docusign"],
+      "iss": "pingfederate.company.com",
+      "exp": 1768765200
+    },
+    "audit": [
+      { "ts": "2025-09-11T13:00:00Z", "event": "LoginSuccess", "app": "DocuSign" }
+    ]
+  },
+  "u1013": {
+    "lastLogin": "2025-09-17T07:30:00Z",
+    "activeSessions": 3,
+    "ssoProviders": ["Okta", "AzureAD"],
+    "idp": "PingFederate",
+    "sp": ["Slack", "CyberArk", "AWS", "Azure"],
+    "tokenStatus": "Valid",
+    "mfaEnforced": true,
+    "recentApps": ["AWS", "Azure", "CyberArk"],
+    "sessionTimeoutMinutes": 30,
+    "sessions": [
+      { "sessionId": "s-1301", "app": "AWS", "ip": "192.168.1.70", "startedAt": "2025-09-17T07:00:00Z" },
+      { "sessionId": "s-1302", "app": "Azure", "ip": "192.168.1.71", "startedAt": "2025-09-17T07:15:00Z" },
+      { "sessionId": "s-1303", "app": "CyberArk", "ip": "192.168.1.72", "startedAt": "2025-09-17T07:25:00Z" }
+    ],
+    "tokenClaims": {
+      "sub": "u1013",
+      "email": "mohammed.ali@company.com",
+      "aud": ["aws", "azure", "cyberark"],
+      "iss": "pingfederate.company.com",
+      "exp": 1768765200
+    },
+    "audit": [
+      { "ts": "2025-09-16T08:30:00Z", "event": "LoginSuccess", "app": "AWS" },
+      { "ts": "2025-09-16T08:00:00Z", "event": "MFAChallenge", "status": "Passed" }
+    ]
+  },
+  "u1014": {
+    "lastLogin": "2025-09-16T15:00:00Z",
+    "activeSessions": 1,
+    "ssoProviders": ["Okta"],
+    "idp": "PingFederate",
+    "sp": ["Slack", "Zendesk"],
+    "tokenStatus": "Valid",
+    "mfaEnforced": false,
+    "recentApps": ["Zendesk", "Slack"],
+    "sessionTimeoutMinutes": 60,
+    "sessions": [
+      { "sessionId": "s-1401", "app": "Zendesk", "ip": "192.168.3.20", "startedAt": "2025-09-16T14:30:00Z" }
+    ],
+    "tokenClaims": {
+      "sub": "u1014",
+      "email": "nina.brown@company.com",
+      "aud": ["zendesk"],
+      "iss": "pingfederate.company.com",
+      "exp": 1768765200
+    },
+    "audit": [
+      { "ts": "2025-09-15T10:00:00Z", "event": "LoginSuccess", "app": "Zendesk" }
+    ]
+  },
+  "u1015": {
+    "lastLogin": "2025-09-17T12:00:00Z",
+    "activeSessions": 1,
+    "ssoProviders": ["Okta"],
+    "idp": "PingFederate",
+    "sp": ["Slack", "Jira", "TestRail"],
+    "tokenStatus": "Valid",
+    "mfaEnforced": true,
+    "recentApps": ["TestRail", "Jira"],
+    "sessionTimeoutMinutes": 60,
+    "sessions": [
+      { "sessionId": "s-1501", "app": "TestRail", "ip": "192.168.5.20", "startedAt": "2025-09-17T11:30:00Z" }
+    ],
+    "tokenClaims": {
+      "sub": "u1015",
+      "email": "oscar.diaz@company.com",
+      "aud": ["testrail"],
+      "iss": "pingfederate.company.com",
+      "exp": 1768765200
+    },
+    "audit": [
+      { "ts": "2025-09-16T13:15:00Z", "event": "LoginSuccess", "app": "TestRail" }
+    ]
+  },
+  "u1016": {
+    "lastLogin": "2025-09-17T11:00:00Z",
+    "activeSessions": 2,
+    "ssoProviders": ["AzureAD"],
+    "idp": "PingFederate",
+    "sp": ["Slack", "Databricks", "Tableau"],
+    "tokenStatus": "Valid",
+    "mfaEnforced": true,
+    "recentApps": ["Databricks", "Tableau"],
+    "sessionTimeoutMinutes": 60,
+    "sessions": [
+      { "sessionId": "s-1601", "app": "Databricks", "ip": "192.168.2.40", "startedAt": "2025-09-17T10:00:00Z" },
+      { "sessionId": "s-1602", "app": "Tableau", "ip": "192.168.2.41", "startedAt": "2025-09-17T10:45:00Z" }
+    ],
+    "tokenClaims": {
+      "sub": "u1016",
+      "email": "priya.singh@company.com",
+      "aud": ["databricks", "tableau"],
+      "iss": "pingfederate.company.com",
+      "exp": 1768765200
+    },
+    "audit": [
+      { "ts": "2025-09-16T11:30:00Z", "event": "LoginSuccess", "app": "Databricks" }
+    ]
+  },
+  "u1017": {
+    "lastLogin": "2025-09-09T07:30:00Z",
+    "activeSessions": 1,
+    "ssoProviders": ["AzureAD"],
+    "idp": "PingFederate",
+    "sp": ["Slack", "Workday", "NetSuite"],
+    "tokenStatus": "Valid",
+    "mfaEnforced": false,
+    "recentApps": ["NetSuite", "Workday"],
+    "sessionTimeoutMinutes": 60,
+    "sessions": [
+      { "sessionId": "s-1701", "app": "NetSuite", "ip": "192.168.1.80", "startedAt": "2025-09-09T07:00:00Z" }
+    ],
+    "tokenClaims": {
+      "sub": "u1017",
+      "email": "quentin.roux@company.com",
+      "aud": ["netsuite"],
+      "iss": "pingfederate.company.com",
+      "exp": 1768765200
+    },
+    "audit": [
+      { "ts": "2025-09-08T09:15:00Z", "event": "LoginSuccess", "app": "NetSuite" }
+    ]
+  },
+  "u1018": {
+    "lastLogin": "2025-09-16T13:00:00Z",
+    "activeSessions": 1,
+    "ssoProviders": ["Okta"],
+    "idp": "PingFederate",
+    "sp": ["Slack", "Workday", "BambooHR"],
+    "tokenStatus": "Valid",
+    "mfaEnforced": true,
+    "recentApps": ["BambooHR", "Workday"],
+    "sessionTimeoutMinutes": 60,
+    "sessions": [
+      { "sessionId": "s-1801", "app": "BambooHR", "ip": "192.168.3.30", "startedAt": "2025-09-16T12:30:00Z" }
+    ],
+    "tokenClaims": {
+      "sub": "u1018",
+      "email": "rita.souza@company.com",
+      "aud": ["bamboohr"],
+      "iss": "pingfederate.company.com",
+      "exp": 1768765200
+    },
+    "audit": [
+      { "ts": "2025-09-15T11:45:00Z", "event": "LoginSuccess", "app": "BambooHR" }
+    ]
+  },
+  "u1019": {
+    "lastLogin": "2025-09-17T10:00:00Z",
+    "activeSessions": 1,
+    "ssoProviders": ["Okta"],
+    "idp": "PingFederate",
+    "sp": ["Slack", "Jira", "OneTrust"],
+    "tokenStatus": "Valid",
+    "mfaEnforced": true,
+    "recentApps": ["OneTrust", "Jira"],
+    "sessionTimeoutMinutes": 60,
+    "sessions": [
+      { "sessionId": "s-1901", "app": "OneTrust", "ip": "192.168.1.90", "startedAt": "2025-09-17T09:30:00Z" }
+    ],
+    "tokenClaims": {
+      "sub": "u1019",
+      "email": "sam.wilson@company.com",
+      "aud": ["onetrust"],
+      "iss": "pingfederate.company.com",
+      "exp": 1768765200
+    },
+    "audit": [
+      { "ts": "2025-09-16T14:00:00Z", "event": "LoginSuccess", "app": "OneTrust" }
+    ]
+  },
+  "u1020": {
+    "lastLogin": "2025-09-17T08:00:00Z",
+    "activeSessions": 2,
+    "ssoProviders": ["Okta", "AzureAD"],
+    "idp": "PingFederate",
+    "sp": ["Slack", "Github", "Datadog", "PagerDuty"],
+    "tokenStatus": "Valid",
+    "mfaEnforced": false,
+    "recentApps": ["Github", "Datadog", "PagerDuty"],
+    "sessionTimeoutMinutes": 60,
+    "sessions": [
+      { "sessionId": "s-2001", "app": "Github", "ip": "192.168.5.30", "startedAt": "2025-09-17T07:30:00Z" },
+      { "sessionId": "s-2002", "app": "Datadog", "ip": "192.168.5.31", "startedAt": "2025-09-17T07:50:00Z" }
+    ],
+    "tokenClaims": {
+      "sub": "u1020",
+      "email": "tina.zhang@company.com",
+      "aud": ["github", "datadog"],
+      "iss": "pingfederate.company.com",
+      "exp": 1768765200
+    },
+    "audit": [
+      { "ts": "2025-09-16T09:00:00Z", "event": "LoginSuccess", "app": "Github" }
+    ]
+  }
 }

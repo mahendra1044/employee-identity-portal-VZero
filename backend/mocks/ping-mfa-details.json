@@ -1,21 +1,314 @@
 {
-  "status": "Enabled",
-  "enrolledDevices": [
-    { "type": "Phone", "model": "iPhone 14", "lastUsed": "2025-09-17T14:21:00Z", "fingerprint": "dev-iph14-alice" },
-    { "type": "AuthenticatorApp", "name": "PingID", "lastUsed": "2025-09-12T10:05:00Z", "fingerprint": "app-pingid-alice" }
-  ],
-  "lastEvent": "2025-09-17T14:22:11Z",
-  "enrollmentDate": "2022-04-15",
-  "policy": {
-    "challengeOnNewDevice": true,
-    "biometricsAllowed": true,
-    "minOSVersion": "13.0",
-    "trustedNetworks": ["10.0.0.0/8", "192.168.0.0/16"],
-    "stepUpApps": ["Datadog", "BillingPortal"]
+  "u1001": {
+    "userId": "u1001",
+    "status": "Enabled",
+    "enrolledDevices": ["iPhone 14", "YubiKey 5C"],
+    "lastEvent": "2025-09-17T14:20:00Z",
+    "eventType": "Push Approved",
+    "defaultMethod": "Push",
+    "backupMethods": ["SMS", "TOTP"],
+    "enrollmentDate": "2023-03-15",
+    "lastMethodUpdate": "2025-08-10",
+    "recentActivity": [
+      { "ts": "2025-09-17T14:20:00Z", "event": "Push Approved", "app": "Jira" },
+      { "ts": "2025-09-16T16:10:00Z", "event": "Push Approved", "app": "Github" },
+      { "ts": "2025-09-15T09:45:00Z", "event": "TOTP Success", "app": "Slack" }
+    ],
+    "complianceStatus": "Compliant",
+    "riskLevel": "Low"
   },
-  "history": [
-    { "ts": "2025-09-17T14:22:11Z", "event": "MFAChallenge", "result": "Pass", "app": "Github" },
-    { "ts": "2025-09-15T09:12:03Z", "event": "DeviceEnroll", "result": "Success", "device": "PingID" },
-    { "ts": "2025-09-10T08:31:44Z", "event": "MFAChallenge", "result": "Pass", "app": "Jira" }
-  ]
+  "u1002": {
+    "userId": "u1002",
+    "status": "Enabled",
+    "enrolledDevices": ["iPhone 15 Pro", "YubiKey 5C"],
+    "lastEvent": "2025-09-16T09:00:00Z",
+    "eventType": "Push Approved",
+    "defaultMethod": "Push",
+    "backupMethods": ["SMS", "TOTP"],
+    "enrollmentDate": "2020-02-01",
+    "lastMethodUpdate": "2025-07-20",
+    "recentActivity": [
+      { "ts": "2025-09-16T09:00:00Z", "event": "Push Approved", "app": "Slack" },
+      { "ts": "2025-09-15T10:15:00Z", "event": "Push Approved", "app": "Github" }
+    ],
+    "complianceStatus": "Compliant",
+    "riskLevel": "Low"
+  },
+  "u1003": {
+    "userId": "u1003",
+    "status": "Disabled",
+    "enrolledDevices": [],
+    "lastEvent": null,
+    "eventType": null,
+    "defaultMethod": null,
+    "backupMethods": [],
+    "enrollmentDate": null,
+    "lastMethodUpdate": null,
+    "recentActivity": [],
+    "complianceStatus": "Non-Compliant",
+    "riskLevel": "High"
+  },
+  "u1004": {
+    "userId": "u1004",
+    "status": "Enabled",
+    "enrolledDevices": ["Android Pixel 8"],
+    "lastEvent": "2025-09-10T18:10:00Z",
+    "eventType": "Push Approved",
+    "defaultMethod": "Push",
+    "backupMethods": ["SMS"],
+    "enrollmentDate": "2022-11-15",
+    "lastMethodUpdate": "2025-06-05",
+    "recentActivity": [
+      { "ts": "2025-09-10T18:10:00Z", "event": "Push Approved", "app": "Workday" }
+    ],
+    "complianceStatus": "Compliant",
+    "riskLevel": "Low"
+  },
+  "u1005": {
+    "userId": "u1005",
+    "status": "Pending",
+    "enrolledDevices": [],
+    "lastEvent": null,
+    "eventType": null,
+    "defaultMethod": null,
+    "backupMethods": [],
+    "enrollmentDate": null,
+    "lastMethodUpdate": null,
+    "recentActivity": [],
+    "complianceStatus": "Pending Enrollment",
+    "riskLevel": "Medium"
+  },
+  "u1006": {
+    "userId": "u1006",
+    "status": "Enabled",
+    "enrolledDevices": ["iPhone 15", "YubiKey 5C", "Hardware Token"],
+    "lastEvent": "2025-09-17T08:40:00Z",
+    "eventType": "Hardware Token",
+    "defaultMethod": "Hardware Token",
+    "backupMethods": ["Push", "TOTP"],
+    "enrollmentDate": "2021-03-30",
+    "lastMethodUpdate": "2025-05-15",
+    "recentActivity": [
+      { "ts": "2025-09-17T08:40:00Z", "event": "Hardware Token", "app": "CyberArk" },
+      { "ts": "2025-09-16T15:15:00Z", "event": "Hardware Token", "app": "Splunk" }
+    ],
+    "complianceStatus": "Compliant",
+    "riskLevel": "Low"
+  },
+  "u1007": {
+    "userId": "u1007",
+    "status": "Enabled",
+    "enrolledDevices": ["iPhone 14 Pro"],
+    "lastEvent": "2025-09-16T13:55:00Z",
+    "eventType": "Push Approved",
+    "defaultMethod": "Push",
+    "backupMethods": ["SMS"],
+    "enrollmentDate": "2020-06-20",
+    "lastMethodUpdate": "2025-06-25",
+    "recentActivity": [
+      { "ts": "2025-09-16T13:55:00Z", "event": "Push Approved", "app": "HubSpot" }
+    ],
+    "complianceStatus": "Compliant",
+    "riskLevel": "Low"
+  },
+  "u1008": {
+    "userId": "u1008",
+    "status": "Disabled",
+    "enrolledDevices": [],
+    "lastEvent": null,
+    "eventType": null,
+    "defaultMethod": null,
+    "backupMethods": [],
+    "enrollmentDate": null,
+    "lastMethodUpdate": null,
+    "recentActivity": [],
+    "complianceStatus": "Non-Compliant",
+    "riskLevel": "High"
+  },
+  "u1009": {
+    "userId": "u1009",
+    "status": "Enabled",
+    "enrolledDevices": ["Android Pixel 7"],
+    "lastEvent": "2025-09-13T13:50:00Z",
+    "eventType": "TOTP Success",
+    "defaultMethod": "TOTP",
+    "backupMethods": ["SMS"],
+    "enrollmentDate": "2023-05-20",
+    "lastMethodUpdate": "2025-08-10",
+    "recentActivity": [
+      { "ts": "2025-09-13T13:50:00Z", "event": "TOTP Success", "app": "Github" },
+      { "ts": "2025-09-12T15:15:00Z", "event": "TOTP Success", "app": "Jira" }
+    ],
+    "complianceStatus": "Compliant",
+    "riskLevel": "Low"
+  },
+  "u1010": {
+    "userId": "u1010",
+    "status": "Enabled",
+    "enrolledDevices": ["iPhone 15"],
+    "lastEvent": "2025-09-16T11:25:00Z",
+    "eventType": "Push Approved",
+    "defaultMethod": "Push",
+    "backupMethods": ["SMS", "TOTP"],
+    "enrollmentDate": "2021-07-25",
+    "lastMethodUpdate": "2025-05-30",
+    "recentActivity": [
+      { "ts": "2025-09-16T11:25:00Z", "event": "Push Approved", "app": "Aha" }
+    ],
+    "complianceStatus": "Compliant",
+    "riskLevel": "Low"
+  },
+  "u1011": {
+    "userId": "u1011",
+    "status": "Pending",
+    "enrolledDevices": [],
+    "lastEvent": null,
+    "eventType": null,
+    "defaultMethod": null,
+    "backupMethods": [],
+    "enrollmentDate": null,
+    "lastMethodUpdate": null,
+    "recentActivity": [],
+    "complianceStatus": "Pending Enrollment",
+    "riskLevel": "Medium"
+  },
+  "u1012": {
+    "userId": "u1012",
+    "status": "Enabled",
+    "enrolledDevices": ["iPhone 14"],
+    "lastEvent": "2025-09-12T10:15:00Z",
+    "eventType": "Push Approved",
+    "defaultMethod": "Push",
+    "backupMethods": ["SMS"],
+    "enrollmentDate": "2020-09-10",
+    "lastMethodUpdate": "2025-06-12",
+    "recentActivity": [
+      { "ts": "2025-09-12T10:15:00Z", "event": "Push Approved", "app": "DocuSign" }
+    ],
+    "complianceStatus": "Compliant",
+    "riskLevel": "Low"
+  },
+  "u1013": {
+    "userId": "u1013",
+    "status": "Enabled",
+    "enrolledDevices": ["iPhone 15 Pro", "YubiKey 5C"],
+    "lastEvent": "2025-09-17T07:25:00Z",
+    "eventType": "Hardware Token",
+    "defaultMethod": "Hardware Token",
+    "backupMethods": ["Push", "TOTP"],
+    "enrollmentDate": "2019-04-15",
+    "lastMethodUpdate": "2025-05-05",
+    "recentActivity": [
+      { "ts": "2025-09-17T07:25:00Z", "event": "Hardware Token", "app": "AWS" },
+      { "ts": "2025-09-16T08:25:00Z", "event": "Hardware Token", "app": "Azure" }
+    ],
+    "complianceStatus": "Compliant",
+    "riskLevel": "Low"
+  },
+  "u1014": {
+    "userId": "u1014",
+    "status": "Disabled",
+    "enrolledDevices": [],
+    "lastEvent": null,
+    "eventType": null,
+    "defaultMethod": null,
+    "backupMethods": [],
+    "enrollmentDate": null,
+    "lastMethodUpdate": null,
+    "recentActivity": [],
+    "complianceStatus": "Non-Compliant",
+    "riskLevel": "High"
+  },
+  "u1015": {
+    "userId": "u1015",
+    "status": "Enabled",
+    "enrolledDevices": ["Android Pixel 8"],
+    "lastEvent": "2025-09-17T11:55:00Z",
+    "eventType": "TOTP Success",
+    "defaultMethod": "TOTP",
+    "backupMethods": ["SMS"],
+    "enrollmentDate": "2022-03-25",
+    "lastMethodUpdate": "2025-07-10",
+    "recentActivity": [
+      { "ts": "2025-09-17T11:55:00Z", "event": "TOTP Success", "app": "TestRail" }
+    ],
+    "complianceStatus": "Compliant",
+    "riskLevel": "Low"
+  },
+  "u1016": {
+    "userId": "u1016",
+    "status": "Enabled",
+    "enrolledDevices": ["iPhone 15 Pro"],
+    "lastEvent": "2025-09-17T10:55:00Z",
+    "eventType": "Push Approved",
+    "defaultMethod": "Push",
+    "backupMethods": ["TOTP"],
+    "enrollmentDate": "2021-12-10",
+    "lastMethodUpdate": "2025-06-28",
+    "recentActivity": [
+      { "ts": "2025-09-17T10:55:00Z", "event": "Push Approved", "app": "Databricks" }
+    ],
+    "complianceStatus": "Compliant",
+    "riskLevel": "Low"
+  },
+  "u1017": {
+    "userId": "u1017",
+    "status": "Pending",
+    "enrolledDevices": [],
+    "lastEvent": null,
+    "eventType": null,
+    "defaultMethod": null,
+    "backupMethods": [],
+    "enrollmentDate": null,
+    "lastMethodUpdate": null,
+    "recentActivity": [],
+    "complianceStatus": "Pending Enrollment",
+    "riskLevel": "Medium"
+  },
+  "u1018": {
+    "userId": "u1018",
+    "status": "Enabled",
+    "enrolledDevices": ["iPhone 14"],
+    "lastEvent": "2025-09-16T12:55:00Z",
+    "eventType": "Push Approved",
+    "defaultMethod": "Push",
+    "backupMethods": ["SMS"],
+    "enrollmentDate": "2020-11-30",
+    "lastMethodUpdate": "2025-06-20",
+    "recentActivity": [
+      { "ts": "2025-09-16T12:55:00Z", "event": "Push Approved", "app": "BambooHR" }
+    ],
+    "complianceStatus": "Compliant",
+    "riskLevel": "Low"
+  },
+  "u1019": {
+    "userId": "u1019",
+    "status": "Enabled",
+    "enrolledDevices": ["Android Pixel 7"],
+    "lastEvent": "2025-09-17T09:55:00Z",
+    "eventType": "TOTP Success",
+    "defaultMethod": "TOTP",
+    "backupMethods": ["SMS"],
+    "enrollmentDate": "2022-06-15",
+    "lastMethodUpdate": "2025-07-25",
+    "recentActivity": [
+      { "ts": "2025-09-17T09:55:00Z", "event": "TOTP Success", "app": "OneTrust" }
+    ],
+    "complianceStatus": "Compliant",
+    "riskLevel": "Low"
+  },
+  "u1020": {
+    "userId": "u1020",
+    "status": "Disabled",
+    "enrolledDevices": [],
+    "lastEvent": null,
+    "eventType": null,
+    "defaultMethod": null,
+    "backupMethods": [],
+    "enrollmentDate": null,
+    "lastMethodUpdate": null,
+    "recentActivity": [],
+    "complianceStatus": "Non-Compliant",
+    "riskLevel": "High"
+  }
 }

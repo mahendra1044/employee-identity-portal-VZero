@@ -1,6 +1,69 @@
-# Identity Portal (Next.js 15 + shadcn/ui)
+# Identity Sphere (Next.js 15 + shadcn/ui)
 
 ## New Features (Sept 2025)
+
+- **Role Toggle for Ops (NEW)**:
+  - Ops users can now toggle between "Ops mode" and "Employee mode" via a button in the header (near the theme toggle).
+  - **Purpose**: Allows ops team members to quickly switch UI perspectives without logging out/re-logging in, since ops roles inherently include employee capabilities.
+  - **Visibility**: Icon button (Users icon) appears only for users with original role = "ops".
+  - **Behavior**:
+    - Toggles the effective role between "ops" and "employee".
+    - Updates the role badge in the header to reflect the current mode.
+    - Shows a success toast: "Switched to [mode] mode".
+    - **UI Changes**:
+      - Ops mode: Shows Recent Failures panel, Quick Actions (after search), and system cards (after search if configured).
+      - Employee mode: Hides ops-specific sections; shows "Educate me" button and employee-only Ping Federate quick actions.
+    - **Backend Consistency**: API calls always use the original JWT role ("ops"), so full access is preserved. The toggle affects only frontend UI rendering.
+    - **Persistence**: Resets to original role on page refresh or logout. No localStorage storage to avoid sync issues.
+    - **Limitations**: Only available for original "ops" role (inferred from login email). Employees and other roles cannot toggle.
+  - **Testing**:
+    1. Login as ops (e.g., ops@company.com).
+    2. Click the Users icon button → switches to Employee mode (badge changes to blue "employee", Recent Failures hides, Educate button appears).
+    3. Click again → switches back to Ops mode.
+    4. Refresh page → reverts to original Ops mode.
+    5. In Employee mode, search and view results as an employee would (limited systems).
+   
+    Implementation Summary
+1. Role Management:
+
+Renamed role from useAuth() to originalRole to preserve the actual JWT role
+Added effectiveRole state to track the current UI mode
+Computed role variable that UI components use: effectiveRole || originalRole
+2. Toggle Button:
+
+Added icon button with Users icon in the header (right after theme toggle)
+Only visible when originalRole === "ops"
+Shows tooltip indicating which mode it will switch to
+Positioned near the theme toggle as requested
+3. Toggle Behavior:
+
+toggleRole() function switches between "ops" and "employee" modes
+Shows success toast: "Switched to [mode] mode"
+Updates role badge automatically (already reflects the current role)
+4. UI Changes by Mode:
+
+Ops Mode:
+
+✅ Shows Recent Failures panel
+✅ Shows Quick Actions (after search)
+✅ Shows system cards (after search)
+✅ Hides "Educate me" button
+Employee Mode:
+
+✅ Hides Recent Failures panel
+✅ Hides Quick Actions
+✅ Shows "Educate me" button
+✅ Shows employee-only Ping Federate quick actions in system cards
+5. Persistence:
+
+Resets to original role on page refresh (via useEffect that syncs effectiveRole with originalRole)
+No localStorage to avoid sync issues
+Resets on logout automatically
+6. Backend Consistency:
+
+All API calls use the original JWT token (unchanged)
+Toggle only affects frontend UI rendering
+Full ops access preserved via original JWT role
 
 - Copy JSON everywhere
   - Added "Copy JSON" buttons to all places where JSON is rendered:

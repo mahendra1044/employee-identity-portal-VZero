@@ -11,9 +11,10 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Sun, Moon, User, Copy, RefreshCw, Eye, Code, BookOpen, FileText, LogOut, Globe, Shield, Database, Users, History, CheckCircle as Status, Smartphone as Device, Calendar as Event, LogIn as Signin, Activity, Badge as Role, Key as Entitlement, Send as Request, Vault, Settings as SettingsIcon } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import EDUCATE_CONFIG from "@/lib/educate-config.json";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:3001"; // dev: backend server (configurable)
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:3001"; // Backend API base for auth/search/own/config calls
 
 type Features = {
   credentialSource: string;
@@ -58,6 +59,23 @@ const SYSTEM_LABELS: Record<SystemKey, string> = {
   "azure-ad": "Azure AD",
   "ping-mfa": "Ping MFA",
 };
+
+// Helper function to format role names professionally
+function formatRoleName(role: string): string {
+  const roleMap: Record<string, string> = {
+    "ops": "Operations Team",
+    "employee": "Employee Access",
+    "management": "Management",
+  };
+  return roleMap[role] || role.charAt(0).toUpperCase() + role.slice(1);
+}
+
+// Helper function to get role icon
+function getRoleIcon(role: string) {
+  if (role === "ops") return <Users className="h-3 w-3" />;
+  if (role === "employee") return <User className="h-3 w-3" />;
+  return <User className="h-3 w-3" />;
+}
 
 function useAuth() {
   const [token, setToken] = useState<string | null>(null);
@@ -116,6 +134,7 @@ function SystemCard({
   token,
   role,
   email,
+  userKey,
 }: {
   name: string;
   system: SystemKey;
@@ -123,6 +142,7 @@ function SystemCard({
   token: string;
   role: string;
   email: string;
+  userKey?: string;
 }) {
   const [data, setData] = useState<any | null>(null);
   const [details, setDetails] = useState<any | null>(null);
@@ -139,42 +159,83 @@ function SystemCard({
   const [ticketDialogOpen, setTicketDialogOpen] = useState(false);
 
   const loadInitial = async (showToast = true) => {
-    if (!enabled) return;
+    console.log(`🔄 [${system}] loadInitial START - enabled:`, enabled, 'userKey:', userKey, 'token:', !!token);
+    
+    if (!enabled) {
+      console.log(`⏭️ [${system}] SKIP - system not enabled`);
+      return;
+    }
+    
+    if (!token) {
+      console.log(`⏭️ [${system}] SKIP - no token`);
+      return;
+    }
+    
     let refreshToast;
     if (showToast) {
-      refreshToast = toast.loading(`Refreshing ${name}...`);
+      refreshToast = toast.loading(`Refreshing ${name}${userKey ? ` for ${userKey}` : ''}...`);
     }
+    
     setLoading(true);
     setError(null);
+    setData(null); // Clear previous data
+    
     try {
-      const res = await fetch(`${API_BASE}/api/own-${system}`, {
+      let endpoint;
+      if (userKey) {
+        // FIXED: Use relative URL for Next.js API routes (search-employee exists only in Next.js, not Express backend)
+        endpoint = `/api/search-employee/${encodeURIComponent(userKey)}/details?system=${system}`;
+      } else {
+        // Use backend for own-* endpoints
+        endpoint = `/api/own-${system}`;
+      }
+      
+      // FIXED: Only use API_BASE for backend endpoints (own-*), not Next.js routes (search-employee)
+      const fullUrl = userKey ? endpoint : `${API_BASE}${endpoint}`;
+      console.log(`📡 [${system}] FETCH START:`, fullUrl);
+      
+      const res = await fetch(fullUrl, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      
+      console.log(`📥 [${system}] RESPONSE:`, res.status, res.statusText, res.ok);
+      
       if (!res.ok) {
-        let message = "Failed";
+        let message = `HTTP ${res.status}`;
         try {
           const j = await res.json();
-          message = j?.error || message;
+          message = j?.error || j?.message || message;
         } catch {
           try {
             const t = await res.text();
             message = t || message;
           } catch {}
         }
+        console.error(`❌ [${system}] FETCH FAILED:`, message);
         throw new Error(message);
       }
+      
       const json = await res.json();
-      setData(json.data);
+      console.log(`✅ [${system}] DATA RECEIVED:`, json);
+      
+      const extractedData = json.data || json;
+      console.log(`💾 [${system}] EXTRACTED DATA:`, extractedData);
+      
+      setData(extractedData);
+      console.log(`🎉 [${system}] STATE UPDATED - data is now set`);
+      
       if (showToast) {
-        toast.success(`Refreshed ${name}`, { id: refreshToast });
+        toast.success(`Refreshed ${name}${userKey ? ` for ${userKey}` : ''}`, { id: refreshToast });
       }
     } catch (e: any) {
+      console.error(`❌ [${system}] ERROR:`, e.message);
       setError(e.message || "Error loading data");
       if (showToast) {
         toast.error(`Failed to refresh ${name}: ${e.message}`, { id: refreshToast });
       }
     } finally {
       setLoading(false);
+      console.log(`🏁 [${system}] loadInitial COMPLETE - loading:false, hasData:${!!data}, hasError:${!!error}`);
     }
   };
 
@@ -182,7 +243,16 @@ function SystemCard({
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API_BASE}/api/own-${system}/details`, {
+      let endpoint;
+      if (userKey) {
+        // FIXED: Use relative URL for Next.js API routes
+        endpoint = `/api/search-employee/${encodeURIComponent(userKey)}/details?system=${system}`;
+      } else {
+        endpoint = `/api/own-${system}/details`;
+      }
+      // FIXED: Only use API_BASE for backend (own-*) endpoints
+      const fullUrl = userKey ? endpoint : `${API_BASE}${endpoint}`;
+      const res = await fetch(fullUrl, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) {
@@ -199,7 +269,7 @@ function SystemCard({
         throw new Error(message);
       }
       const json = await res.json();
-      setDetails(json.data);
+      setDetails(json.data || json);
       setDetailsOpen(true);
     } catch (e: any) {
       setError(e.message || "Error loading details");
@@ -209,9 +279,18 @@ function SystemCard({
   };
 
   useEffect(() => {
+    console.log(`🔁 [${system}] useEffect TRIGGERED - token:${!!token}, enabled:${enabled}, userKey:"${userKey}"`);
+    
+    // Reset state when userKey changes
+    if (userKey !== undefined) {
+      console.log(`🔄 [${system}] UserKey changed to "${userKey}", resetting and loading...`);
+      setData(null);
+      setError(null);
+    }
+    
     loadInitial(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, enabled]);
+  }, [token, enabled, userKey]);
 
   // helper to flatten JSON into key/value pairs for readable HTML view
   const toPairs = (obj: any): Array<{ k: string; v: any }> => {
@@ -296,37 +375,76 @@ function SystemCard({
 
   return (
     <>
-      <Card className="shadow-sm">
+      <Card className="shadow-sm relative">
+        {userKey && (
+          <div className="absolute top-2 right-2 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded opacity-90">
+            For: {userKey}
+          </div>
+        )}
         <CardHeader className="text-center pb-3">
           <CardTitle className="text-lg font-semibold">{name}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex justify-end gap-2">
-            <Button size="sm" variant="secondary" onClick={() => loadInitial(true)} disabled={!enabled || loading} title="Refresh system data">
-              <RefreshCw className="h-4 w-4" />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button size="sm" variant="secondary" onClick={() => loadInitial(true)} disabled={!enabled || loading}>
+                  <RefreshCw className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Refresh system data</p>
+              </TooltipContent>
+            </Tooltip>
             {data && (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => {
-                  navigator.clipboard.writeText(JSON.stringify(data, null, 2));
-                  toast.success(`Copied ${name} JSON to clipboard`);
-                }}
-                title="Copy current JSON data to clipboard"
-              >
-                <Copy className="h-4 w-4" />
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      navigator.clipboard.writeText(JSON.stringify(data, null, 2));
+                      toast.success(`Copied ${name} JSON to clipboard`);
+                    }}
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Copy JSON to clipboard</p>
+                </TooltipContent>
+              </Tooltip>
             )}
-            <Button size="sm" onClick={loadDetails} disabled={!enabled || loading} title="View detailed information">
-              <Eye className="h-4 w-4" />
-            </Button>
-            <Button size="sm" variant="outline" onClick={openHtmlView} disabled={!enabled || loading} title="View data in HTML format">
-              <Code className="h-4 w-4" />
-            </Button>
-            <Button size="sm" variant="outline" onClick={openTicketDialog} disabled={!enabled} title="Submit SNOW ticket with current data">
-              <FileText className="h-4 w-4" />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button size="sm" onClick={loadDetails} disabled={!enabled || loading}>
+                  <Eye className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>View detailed information</p>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button size="sm" variant="outline" onClick={openHtmlView} disabled={!enabled || loading}>
+                  <Code className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>View in readable format</p>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button size="sm" variant="outline" onClick={openTicketDialog} disabled={!enabled}>
+                  <FileText className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Create ServiceNow ticket</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
           {system === "ping-federate" && role === "employee" && (
             <div className="flex flex-wrap gap-2 justify-center p-3 bg-muted/50 rounded-lg">
@@ -399,16 +517,30 @@ function SystemCard({
             </div>
           )}
           <div className="space-y-3">
-            {data ? (
+            {loading ? (
+              <div className="text-center py-4">
+                <p className="text-sm text-muted-foreground animate-pulse">Loading data...</p>
+                {userKey && <p className="text-xs text-muted-foreground mt-1">Fetching data for {userKey}</p>}
+              </div>
+            ) : error ? (
+              <div className="text-center py-4">
+                <p className="text-sm text-red-600">{error}</p>
+                <Button size="sm" variant="outline" onClick={() => loadInitial(true)} className="mt-2">
+                  Retry
+                </Button>
+              </div>
+            ) : data ? (
               <div>
-                <pre className="text-xs bg-muted p-2 rounded overflow-x-auto">
+                <pre className="text-xs bg-muted p-2 rounded overflow-x-auto max-h-96">
                   {JSON.stringify(data, null, 2)}
                 </pre>
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">No data yet</p>
+              <div className="text-center py-4">
+                <p className="text-sm text-muted-foreground">No data yet</p>
+                {userKey && <p className="text-xs text-muted-foreground mt-1">Expected data for {userKey}</p>}
+              </div>
             )}
-            {/* details moved to dialog to keep the page compact */}
           </div>
         </CardContent>
       </Card>
@@ -596,12 +728,11 @@ function LoginCard({ onLogin }: { onLogin: (email: string, password: string) => 
 }
 
 export default function HomePage() {
-  const { token, role, email, login, logout } = useAuth();
+  const { token, role: originalRole, email, login, logout } = useAuth();
   const [features, setFeatures] = useState<Features | null>(null);
   const [search, setSearch] = useState("");
   const [searchResults, setSearchResults] = useState<any | null>(null);
   const [searchError, setSearchError] = useState<string | null>(null);
-  // removed All Users feature and related state
   const [hasSearched, setHasSearched] = useState(false);
   const [theme, setTheme] = useState<"light" | "dark" | "navy">();
   const [minutes, setMinutes] = useState<number>(10);
@@ -609,35 +740,45 @@ export default function HomePage() {
   const [failMfa, setFailMfa] = useState<any[] | null>(null);
   const [opsLoading, setOpsLoading] = useState(false);
   const [opsError, setOpsError] = useState<string | null>(null);
-  // search result detail dialog
   const [searchDialogOpen, setSearchDialogOpen] = useState(false);
   const [searchDialogTitle, setSearchDialogTitle] = useState<string>("");
   const [searchDialogData, setSearchDialogData] = useState<any | null>(null);
   const [searchDialogLoading, setSearchDialogLoading] = useState(false);
   const [searchDialogMode, setSearchDialogMode] = useState<"json" | "html">("json");
-  
-  // SNOW incidents state
   const [snowOpen, setSnowOpen] = useState(false);
   const [snowLoading, setSnowLoading] = useState(false);
   const [snowError, setSnowError] = useState<string | null>(null);
   const [snowCount, setSnowCount] = useState<number | null>(null);
   const [snowItems, setSnowItems] = useState<any[] | null>(null);
   const [snowEmail, setSnowEmail] = useState<string | null>(null);
-
-  // Educate guide state
   const [educateOpen, setEducateOpen] = useState(false);
-
-  // Ops PF quick actions dialog state
   const [pfOpsOpen, setPfOpsOpen] = useState(false);
   const [pfOpsTitle, setPfOpsTitle] = useState<string>("");
   const [pfOpsLoading, setPfOpsLoading] = useState(false);
   const [pfOpsData, setPfOpsData] = useState<any>(null);
-  // Ops Quick Actions active tab
   const [qaActive, setQaActive] = useState<SystemKey>("ping-federate");
-
-  // Settings state for system card visibility
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [userToggles, setUserToggles] = useState<Record<SystemKey, boolean>>({});
+
+  // Role toggle state - effective role for UI rendering (resets on refresh)
+  const [effectiveRole, setEffectiveRole] = useState<string | null>(null);
+
+  // Initialize effective role when originalRole changes (on login or refresh)
+  useEffect(() => {
+    setEffectiveRole(originalRole);
+  }, [originalRole]);
+
+  // Current role for UI rendering (effectiveRole if set, otherwise originalRole)
+  const role = effectiveRole || originalRole;
+
+  // Toggle between ops and employee mode (only available for original ops users)
+  const toggleRole = () => {
+    if (originalRole !== "ops") return;
+    
+    const newRole = effectiveRole === "ops" ? "employee" : "ops";
+    setEffectiveRole(newRole);
+    toast.success(`Switched to ${newRole} mode`);
+  };
 
   // Initialize user toggles from localStorage on mount (client-side only)
   useEffect(() => {
@@ -804,43 +945,6 @@ export default function HomePage() {
     return SYSTEMS.reduce((acc, s) => ({ ...acc, [s]: !!all[s] }), {} as Record<SystemKey, boolean>);
   }, [features]);
 
-  // Combined visibility: enabled && userToggles
-  const visibleSystems = useMemo(() => {
-    return SYSTEMS.filter(s => enabled[s] && userToggles[s]);
-  }, [enabled, userToggles]);
-
-  // Quick Actions tab enablement (from backend features or NEXT_PUBLIC env flags)
-  const qaEnabledTabs = useMemo(() => {
-    const fromFeatures = features?.quickActionsTabs || {};
-    const envBool = (key: string) => {
-      const v = (process.env[key] || "").toString().toLowerCase();
-      return ["1", "true", "on", "yes", "enabled"].includes(v);
-    };
-    const map: Partial<Record<SystemKey, boolean>> = { ...fromFeatures };
-    for (const sys of SYSTEMS) {
-      const envKey = `NEXT_PUBLIC_QA_${sys.replace(/-/g, "_").toUpperCase()}`;
-      if (process.env.hasOwnProperty(envKey)) {
-        map[sys] = envBool(envKey);
-      }
-      // default to true when unspecified
-      if (typeof map[sys] === "undefined") map[sys] = true;
-    }
-    return map as Record<SystemKey, boolean>;
-  }, [features]);
-
-  const splunkUrl = process.env.NEXT_PUBLIC_SPLUNK_URL || "https://splunk.company.com";
-  const cloudwatchUrl = process.env.NEXT_PUBLIC_CLOUDWATCH_URL || "https://console.aws.amazon.com/cloudwatch/home?region=us-east-1";
-
-  // Keep active tab valid when toggles change
-  useEffect(() => {
-    if (!qaEnabledTabs[qaActive]) {
-      const first = SYSTEMS.find((s) => qaEnabledTabs[s]);
-      if (first) setQaActive(first);
-    }
-  }, [qaEnabledTabs, qaActive]);
-
-  const anyEnabled = useMemo(() => Object.values(enabled || {}).some(Boolean), [enabled]);
-
   // Determine the order of system cards based on features.systemsOrder (if provided)
   const orderedSystems = useMemo<SystemKey[]>(() => {
     const order = features?.systemsOrder || [];
@@ -848,6 +952,69 @@ export default function HomePage() {
     const remaining = SYSTEMS.filter((s) => !valid.includes(s));
     return [...valid, ...remaining];
   }, [features]);
+
+  const anyEnabled = useMemo(() => Object.values(enabled).some(Boolean), [enabled]);
+
+  const visibleSystems = useMemo(() => {
+    const result = orderedSystems.filter((sys: SystemKey) => 
+      enabled[sys] && 
+      userToggles[sys] && 
+      (role !== "ops" || hasSearched)
+    );
+    console.log('👁️ [VISIBLE SYSTEMS] Calculated visible systems:', result);
+    console.log('👁️ [VISIBLE SYSTEMS] Filters - role:', role, 'hasSearched:', hasSearched);
+    return result;
+  }, [orderedSystems, enabled, userToggles, role, hasSearched]);
+
+  const qaEnabledTabs = useMemo(() => ({
+    ...enabled,
+    ...(features?.quickActionsTabs || {})
+  }), [enabled, features]);
+
+  const splunkUrl = "https://splunk.company.com";
+  const cloudwatchUrl = "https://console.aws.amazon.com/cloudwatch/home";
+
+  // FIXED: Remove searchKey state - just use resolveUserKey directly
+  const resolveUserKey = useMemo(() => {
+    console.log('🔑 [RESOLVE KEY] Starting - hasSearched:', hasSearched, 'hasResults:', !!searchResults, 'search:', search);
+    
+    // Only resolve user key for ALL roles if search was performed
+    if (!hasSearched || !searchResults) {
+      console.log('🔑 [RESOLVE KEY] No search performed yet, returning undefined');
+      return undefined;
+    }
+    
+    const q = String(search || '').trim().toLowerCase();
+    console.log('🔑 [RESOLVE KEY] Search query (lowercase):', q);
+    
+    const pd = Array.isArray(searchResults?.["ping-directory"]) ? searchResults["ping-directory"] : [];
+    console.log('🔑 [RESOLVE KEY] Ping Directory results:', pd);
+    
+    const exact = pd.find((u: any) => 
+      String(u?.email || '').toLowerCase() === q || 
+      String(u?.userId || '').toLowerCase() === q
+    );
+    
+    if (exact?.userId || exact?.email) {
+      const resolved = exact.userId || exact.email;
+      console.log('🔑 [RESOLVE KEY] Found exact match:', resolved);
+      return resolved;
+    }
+    
+    if (pd[0]?.userId || pd[0]?.email) {
+      const resolved = pd[0].userId || pd[0].email;
+      console.log('🔑 [RESOLVE KEY] Using first result:', resolved);
+      return resolved;
+    }
+    
+    console.log('🔑 [RESOLVE KEY] Falling back to search query:', q);
+    return q || undefined;
+  }, [search, searchResults, hasSearched]);
+
+  console.log('🎯 [MAIN RENDER] resolveUserKey:', resolveUserKey, 'hasSearched:', hasSearched);
+
+  // Clear currentUserKey when search empties (ops only)
+  // Remove old searchKey useEffects - no longer needed
 
   const loadRecentFailures = async () => {
     if (!token || role !== "ops") return;
@@ -892,20 +1059,25 @@ export default function HomePage() {
 
   const doSearch = async () => {
     if (!token || !search.trim()) return;
+    console.log('🔍 [SEARCH] Starting search for:', search);
+    console.log('🔍 [SEARCH] Current role:', role);
     setSearchError(null);
     setSearchResults(null);
-    // ensure UI treats this as not completed until success
     setHasSearched(false);
+    console.log('🧹 [SEARCH] Cleared previous search state');
     try {
       const res = await fetch(`${API_BASE}/api/search-employee/${encodeURIComponent(search)}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const body = await res.json();
+      console.log('🔍 [SEARCH] Response received:', body);
       if (!res.ok) throw new Error(body.error || "Search failed");
       setSearchResults(body);
-      // mark completion only after successful fetch
+      console.log('💾 [SEARCH] Search results saved to state');
       setHasSearched(true);
+      console.log('✅ [SEARCH] Search completed successfully, hasSearched set to true');
     } catch (e: any) {
+      console.error('❌ [SEARCH] Search failed:', e.message);
       setSearchError(e.message || "Search failed");
     }
   };
@@ -1032,62 +1204,116 @@ export default function HomePage() {
           <div className="flex items-center gap-3">
             <img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=64&q=60&auto=format&fit=crop" alt="Logo" className="w-8 h-8 rounded" />
             <div>
-              <div className="font-semibold">Identity Portal</div>
-              {/* Signed-in badge */}
+              <div className="font-semibold">Identity Sphere</div>
+              {/* Signed-in badge with improved role display */}
               <div className="mt-1 flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[11px] text-foreground">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-1 text-[11px] font-medium text-foreground border border-border/50">
                   <User className="h-3 w-3" /> {email}
                 </span>
                 <span
                   className={
-                    `inline-flex items-center rounded-full px-2 py-0.5 text-[10px] border ` +
+                    `inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold border shadow-sm ` +
                     (role === "ops"
-                      ? "border-purple-200 text-purple-700 bg-purple-50 dark:bg-purple-900/20"
+                      ? "border-purple-300 text-purple-800 bg-purple-100 dark:border-purple-700 dark:text-purple-200 dark:bg-purple-900/30"
                       : role === "employee"
-                      ? "border-blue-200 text-blue-700 bg-blue-50 dark:bg-blue-900/20"
-                      : "border-amber-200 text-amber-700 bg-amber-50 dark:bg-amber-900/20")
+                      ? "border-blue-300 text-blue-800 bg-blue-100 dark:border-blue-700 dark:text-blue-200 dark:bg-blue-900/30"
+                      : "border-amber-300 text-amber-800 bg-amber-100 dark:border-amber-700 dark:text-amber-200 dark:bg-amber-900/30")
                   }
                 >
-                  {role}
+                  {getRoleIcon(role)}
+                  {formatRoleName(role)}
                 </span>
               </div>
             </div>
           </div>
           <div className="flex items-center gap-2 flex-wrap justify-end">
-            <Button variant="ghost" size="icon" aria-label="Toggle theme" onClick={() => setTheme(prev => prev === "light" ? "dark" : prev === "dark" ? "navy" : "light")}>
-              {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" aria-label="Toggle theme" onClick={() => setTheme(prev => prev === "light" ? "dark" : prev === "dark" ? "navy" : "light")}>
+                  {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Switch theme</p>
+              </TooltipContent>
+            </Tooltip>
+            {/* Role Toggle for Ops (only visible for original ops users) */}
+            {originalRole === "ops" && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    aria-label="Toggle role mode" 
+                    onClick={toggleRole}
+                  >
+                    <Users className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Switch to {effectiveRole === "ops" ? "Employee" : "Operations"} view</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
             {/* Settings button */}
-            <Button variant="ghost" size="sm" onClick={() => setSettingsOpen(true)} title="Settings">
-              <SettingsIcon className="h-4 w-4 mr-1" />
-              Settings
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="sm" onClick={() => setSettingsOpen(true)}>
+                  <SettingsIcon className="h-4 w-4 mr-1" />
+                  <span className="hidden sm:inline">Settings</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Manage system visibility</p>
+              </TooltipContent>
+            </Tooltip>
             {/* Educate Me (employees only) */}
             {role === "employee" && educateEnabled && (
-              <Button variant="outline" size="sm" onClick={() => setEducateOpen(true)} title="Access educational guides for common issues">
-                <BookOpen className="h-4 w-4 mr-1" />
-                Educate me
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline" size="sm" onClick={() => setEducateOpen(true)}>
+                    <BookOpen className="h-4 w-4 mr-1" />
+                    <span className="hidden sm:inline">Educate me</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>View troubleshooting guides</p>
+                </TooltipContent>
+              </Tooltip>
             )}
             {/* Show SNOW tickets button with dynamic count (ops: visible only after search) */}
             {(
               role !== 'ops' || (hasSearched && !!resolveSnowEmail())
             ) && (
-              <Button variant="outline" size="sm" onClick={openSnowDialog} title={role === 'ops' ? (resolveSnowEmail() || undefined) : "View your ServiceNow incidents"}>
-                <FileText className="h-4 w-4 mr-1" />
-                <span className="hidden sm:inline">SNOW tickets</span>
-                <span className="sm:hidden">SNOW</span>
-                {typeof snowCount === 'number' && snowCount > 0 && (
-                  <span className="inline-flex items-center rounded-full bg-destructive px-2 py-0.5 text-[11px] text-destructive-foreground ml-1">
-                    {snowCount}
-                  </span>
-                )}
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline" size="sm" onClick={openSnowDialog}>
+                    <FileText className="h-4 w-4 mr-1" />
+                    <span className="hidden sm:inline">SNOW tickets</span>
+                    <span className="sm:hidden">SNOW</span>
+                    {typeof snowCount === 'number' && snowCount > 0 && (
+                      <span className="inline-flex items-center rounded-full bg-destructive px-2 py-0.5 text-[11px] text-destructive-foreground ml-1">
+                        {snowCount}
+                      </span>
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{role === 'ops' ? `View incidents for ${resolveSnowEmail()}` : "View your ServiceNow incidents"}</p>
+                </TooltipContent>
+              </Tooltip>
             )}
-            <Button variant="secondary" size="sm" onClick={handleLogout} title="Sign out of the portal">
-              <LogOut className="h-4 w-4 mr-1" />
-              Sign out
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="secondary" size="sm" onClick={handleLogout}>
+                  <LogOut className="h-4 w-4 mr-1" />
+                  <span className="hidden sm:inline">Sign out</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Sign out of the portal</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
         </div>
       </header>
@@ -2112,9 +2338,8 @@ export default function HomePage() {
         {/* System Cards (hide by default for ops) */}
         <section>
           {(() => {
-            const showOpsTiles = role === "ops" && !!features?.opsShowTilesAfterSearch && hasSearched;
-            const isOps = role === "ops";
-            const anyVisible = visibleSystems.length > 0;
+            console.log('🎨 [CARDS RENDER] anyEnabled:', anyEnabled, 'visibleSystems:', visibleSystems.length, 'resolveUserKey:', resolveUserKey);
+            
             if (!anyEnabled) {
               return (
                 <Card>
@@ -2129,10 +2354,8 @@ export default function HomePage() {
                 </Card>
               );
             }
-            if (isOps && !showOpsTiles) {
-              return <></>;
-            }
-            if (!anyVisible) {
+            
+            if (visibleSystems.length === 0) {
               return (
                 <Card>
                   <CardHeader>
@@ -2140,27 +2363,35 @@ export default function HomePage() {
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground">
-                      All system cards are hidden via settings. Open Settings to enable some.
+                      {role === "ops" 
+                        ? "System cards appear after a successful search." 
+                        : "All system cards are hidden via settings. Open Settings to enable some."
+                      }
                     </p>
                   </CardContent>
                 </Card>
               );
             }
+            
+            console.log('🎴 [CARDS RENDER] Rendering', visibleSystems.length, 'cards with userKey:', resolveUserKey);
+            
             return (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {orderedSystems
-                  .filter(sys => visibleSystems.includes(sys))
-                  .map((sys) => (
-                  <SystemCard
-                    key={sys}
-                    name={SYSTEM_LABELS[sys]}
-                    system={sys}
-                    enabled={!!enabled[sys]}
-                    token={token!}
-                    role={role!}
-                    email={email!}
-                  />
-                ))}
+                {visibleSystems.map((sys) => {
+                  console.log(`🎴 [CARD RENDER] ${sys} - key: ${sys}-${resolveUserKey || 'own'}, userKey: ${resolveUserKey}`);
+                  return (
+                    <SystemCard
+                      key={`${sys}-${resolveUserKey || 'own'}`}
+                      name={SYSTEM_LABELS[sys]}
+                      system={sys}
+                      enabled={!!enabled[sys]}
+                      token={token!}
+                      role={role!}
+                      email={email!}
+                      userKey={resolveUserKey}
+                    />
+                  );
+                })}
               </div>
             );
           })()}

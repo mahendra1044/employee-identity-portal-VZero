@@ -1,24 +1,184 @@
 {
-  "upn": "alice.johnson@company.com",
-  "objectId": "aad-7f3c1a10-12ab-4b9e-9e12-111122223333",
-  "tenant": "company.onmicrosoft.com",
-  "jobTitle": "Senior Software Engineer",
-  "department": "Engineering",
-  "manager": "Bob Martin",
-  "licenses": ["M365 E5", "PowerBI Pro", "Visual Studio Enterprise"],
-  "groups": [
-    { "id": "g-eng", "name": "AAD-Eng" },
-    { "id": "g-vpn", "name": "AAD-VPN-Users" },
-    { "id": "g-dev", "name": "AAD-Developers" }
-  ],
-  "devices": [
-    { "id": "dev-001", "name": "WIN-ALICE-01", "os": "Windows 11", "lastCheckIn": "2025-09-17T10:00:00Z" },
-    { "id": "dev-002", "name": "MBP-ALICE", "os": "macOS 15", "lastCheckIn": "2025-09-16T08:30:00Z" }
-  ],
-  "signInRisk": "low",
-  "conditionalAccess": {
-    "policies": ["Require MFA", "Block legacy auth"],
-    "lastEvaluated": "2025-09-17T12:55:00Z"
+  "u1001": {
+    "upn": "alice.johnson@company.com",
+    "objectId": "aad-7f3c1a10-12ab-4b9e-9e12-111122223333",
+    "tenant": "company.onmicrosoft.com",
+    "jobTitle": "Senior Software Engineer",
+    "department": "Engineering",
+    "manager": "Bob Martin",
+    "licenses": ["M365 E5", "PowerBI Pro", "Visual Studio Enterprise"],
+    "groups": [
+      { "id": "g-eng", "name": "AAD-Eng" },
+      { "id": "g-vpn", "name": "AAD-VPN-Users" },
+      { "id": "g-dev", "name": "AAD-Developers" }
+    ],
+    "devices": [
+      { "id": "dev-001", "name": "WIN-ALICE-01", "os": "Windows 11", "lastCheckIn": "2025-09-17T10:00:00Z" },
+      { "id": "dev-002", "name": "MBP-ALICE", "os": "macOS 15", "lastCheckIn": "2025-09-16T08:30:00Z" }
+    ],
+    "signInRisk": "low",
+    "conditionalAccess": {
+      "policies": ["Require MFA", "Block legacy auth"],
+      "lastEvaluated": "2025-09-17T12:55:00Z"
+    },
+    "lastSync": "2025-09-17T12:55:00Z"
   },
-  "lastSync": "2025-09-17T12:55:00Z"
+  "u1002": {
+    "upn": "bob.martin@company.com",
+    "objectId": "aad-8g4d2b20-23bc-5c0f-0f23-222233334444",
+    "tenant": "company.onmicrosoft.com",
+    "jobTitle": "Engineering Manager",
+    "department": "Engineering",
+    "manager": "CTO",
+    "licenses": ["M365 E5", "Project Plan 5"],
+    "groups": [
+      { "id": "g-eng", "name": "AAD-Eng" },
+      { "id": "g-vpn", "name": "AAD-VPN-Users" },
+      { "id": "g-mgmt", "name": "AAD-Management" }
+    ],
+    "devices": [
+      { "id": "dev-021", "name": "WIN-BOB-01", "os": "Windows 11", "lastCheckIn": "2025-09-16T09:00:00Z" }
+    ],
+    "signInRisk": "low",
+    "conditionalAccess": {
+      "policies": ["Require MFA", "Block legacy auth"],
+      "lastEvaluated": "2025-09-16T09:30:00Z"
+    },
+    "lastSync": "2025-09-16T09:30:00Z"
+  },
+  "u1003": {
+    "upn": "charlie.kim@company.com",
+    "objectId": "aad-9h5e3c30-34cd-6d1g-1g34-333344445555",
+    "tenant": "company.onmicrosoft.com",
+    "jobTitle": "Support Engineer",
+    "department": "IT",
+    "manager": "IT Director",
+    "licenses": ["M365 E3"],
+    "groups": [
+      { "id": "g-it", "name": "AAD-IT" },
+      { "id": "g-vpn", "name": "AAD-VPN-Users" }
+    ],
+    "devices": [
+      { "id": "dev-031", "name": "WIN-CHARLIE-01", "os": "Windows 11", "lastCheckIn": "2025-09-15T11:00:00Z" }
+    ],
+    "signInRisk": "low",
+    "conditionalAccess": {
+      "policies": ["Require MFA"],
+      "lastEvaluated": "2025-09-15T11:45:00Z"
+    },
+    "lastSync": "2025-09-15T11:45:00Z"
+  },
+  "u1007": {
+    "upn": "george.smith@company.com",
+    "objectId": "aad-0i6f4d40-45de-7e2h-2h45-444455556666",
+    "tenant": "company.onmicrosoft.com",
+    "jobTitle": "Marketing Manager",
+    "department": "Marketing",
+    "manager": "CMO",
+    "licenses": ["M365 E3", "Dynamics 365"],
+    "groups": [
+      { "id": "g-mkt", "name": "AAD-Marketing" },
+      { "id": "g-vpn", "name": "AAD-VPN-Users" }
+    ],
+    "devices": [
+      { "id": "dev-071", "name": "MBP-GEORGE", "os": "macOS 15", "lastCheckIn": "2025-09-16T14:00:00Z" }
+    ],
+    "signInRisk": "low",
+    "conditionalAccess": {
+      "policies": ["Require MFA", "Block legacy auth"],
+      "lastEvaluated": "2025-09-16T14:30:00Z"
+    },
+    "lastSync": "2025-09-16T14:30:00Z"
+  },
+  "u1009": {
+    "upn": "ian.chen@company.com",
+    "objectId": "aad-1j7g5e50-56ef-8f3i-3i56-555566667777",
+    "tenant": "company.onmicrosoft.com",
+    "jobTitle": "Software Engineer",
+    "department": "Engineering",
+    "manager": "Bob Martin",
+    "licenses": ["M365 E5", "GitHub Enterprise"],
+    "groups": [
+      { "id": "g-eng", "name": "AAD-Eng" },
+      { "id": "g-vpn", "name": "AAD-VPN-Users" },
+      { "id": "g-dev", "name": "AAD-Developers" }
+    ],
+    "devices": [
+      { "id": "dev-091", "name": "MBP-IAN", "os": "macOS 15", "lastCheckIn": "2025-09-13T13:30:00Z" }
+    ],
+    "signInRisk": "low",
+    "conditionalAccess": {
+      "policies": ["Require MFA", "Block legacy auth"],
+      "lastEvaluated": "2025-09-13T14:00:00Z"
+    },
+    "lastSync": "2025-09-13T14:00:00Z"
+  },
+  "u1012": {
+    "upn": "laura.garcia@company.com",
+    "objectId": "aad-2k8h6f60-67fg-9g4j-4j67-666677778888",
+    "tenant": "company.onmicrosoft.com",
+    "jobTitle": "Counsel",
+    "department": "Legal",
+    "manager": "General Counsel",
+    "licenses": ["M365 E3", "Adobe Sign"],
+    "groups": [
+      { "id": "g-legal", "name": "AAD-Legal" },
+      { "id": "g-vpn", "name": "AAD-VPN-Users" }
+    ],
+    "devices": [
+      { "id": "dev-121", "name": "WIN-LAURA-01", "os": "Windows 11", "lastCheckIn": "2025-09-12T10:00:00Z" }
+    ],
+    "signInRisk": "low",
+    "conditionalAccess": {
+      "policies": ["Require MFA", "Block legacy auth"],
+      "lastEvaluated": "2025-09-12T10:30:00Z"
+    },
+    "lastSync": "2025-09-12T10:30:00Z"
+  },
+  "u1016": {
+    "upn": "priya.singh@company.com",
+    "objectId": "aad-3l9i7g70-78gh-0h5k-5k78-777788889999",
+    "tenant": "company.onmicrosoft.com",
+    "jobTitle": "Data Scientist",
+    "department": "Data",
+    "manager": "Data Lead",
+    "licenses": ["M365 E5", "PowerBI Pro", "Azure ML"],
+    "groups": [
+      { "id": "g-data", "name": "AAD-Data" },
+      { "id": "g-vpn", "name": "AAD-VPN-Users" },
+      { "id": "g-analytics", "name": "AAD-Analytics" }
+    ],
+    "devices": [
+      { "id": "dev-161", "name": "MBP-PRIYA", "os": "macOS 15", "lastCheckIn": "2025-09-17T11:00:00Z" }
+    ],
+    "signInRisk": "low",
+    "conditionalAccess": {
+      "policies": ["Require MFA", "Block legacy auth"],
+      "lastEvaluated": "2025-09-17T11:30:00Z"
+    },
+    "lastSync": "2025-09-17T11:30:00Z"
+  },
+  "u1020": {
+    "upn": "tina.zhang@company.com",
+    "objectId": "aad-4m0j8h80-89hi-1i6l-6l89-888899990000",
+    "tenant": "company.onmicrosoft.com",
+    "jobTitle": "DevOps Engineer",
+    "department": "Engineering",
+    "manager": "Bob Martin",
+    "licenses": ["M365 E5", "Azure DevOps"],
+    "groups": [
+      { "id": "g-eng", "name": "AAD-Eng" },
+      { "id": "g-vpn", "name": "AAD-VPN-Users" },
+      { "id": "g-devops", "name": "AAD-DevOps" }
+    ],
+    "devices": [
+      { "id": "dev-201", "name": "MBP-TINA", "os": "macOS 15", "lastCheckIn": "2025-09-17T08:00:00Z" }
+    ],
+    "signInRisk": "low",
+    "conditionalAccess": {
+      "policies": ["Require MFA", "Block legacy auth"],
+      "lastEvaluated": "2025-09-17T08:30:00Z"
+    },
+    "lastSync": "2025-09-17T08:30:00Z"
+  }
 }

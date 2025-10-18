@@ -1,29 +1,196 @@
 {
-  "accountId": "svy-acc-1001",
-  "user": "alice.johnson",
-  "displayName": "Alice Johnson",
-  "department": "Engineering",
-  "manager": "Bob Martin",
-  "roles": [
-    { "name": "Engineer", "grantedOn": "2024-01-12", "owner": "eng-manager", "certified": true },
-    { "name": "VPN User", "grantedOn": "2023-11-02", "owner": "net-ops", "certified": true }
-  ],
-  "entitlements": [
-    { "application": "Jira", "name": "Jira-User", "grantedOn": "2023-10-05" },
-    { "application": "Github", "name": "Github-Read", "grantedOn": "2023-12-18" }
-  ],
-  "risk": {
-    "score": 12,
-    "factors": ["Multiple VPN groups", "Local admin on workstation"],
-    "lastCalculated": "2025-08-31T00:00:00Z"
+  "u1001": {
+    "accountId": "svy-acc-1001",
+    "user": "alice.johnson",
+    "displayName": "Alice Johnson",
+    "department": "Engineering",
+    "manager": "Bob Martin",
+    "roles": [
+      { "name": "Engineer", "grantedOn": "2024-01-12", "owner": "eng-manager", "certified": true },
+      { "name": "VPN User", "grantedOn": "2023-11-02", "owner": "net-ops", "certified": true }
+    ],
+    "entitlements": [
+      { "application": "Jira", "name": "Jira-User", "grantedOn": "2023-10-05" },
+      { "application": "Github", "name": "Github-Read", "grantedOn": "2023-12-18" }
+    ],
+    "risk": {
+      "score": 12,
+      "factors": ["Multiple VPN groups", "Local admin on workstation"],
+      "lastCalculated": "2025-08-31T00:00:00Z"
+    },
+    "lastReviewed": "2025-08-31",
+    "certifications": [
+      { "campaign": "Q3-2025 Access Review", "status": "Approved", "completedAt": "2025-09-05" }
+    ],
+    "accessRequestsOpen": 0,
+    "history": [
+      { "ts": "2025-07-14T09:20:00Z", "action": "RoleGranted", "detail": "Engineer" },
+      { "ts": "2025-06-01T10:12:00Z", "action": "EntitlementGranted", "detail": "Github-Read" }
+    ]
   },
-  "lastReviewed": "2025-08-31",
-  "certifications": [
-    { "campaign": "Q3-2025 Access Review", "status": "Approved", "completedAt": "2025-09-05" }
-  ],
-  "accessRequestsOpen": 0,
-  "history": [
-    { "ts": "2025-07-14T09:20:00Z", "action": "RoleGranted", "detail": "Engineer" },
-    { "ts": "2025-06-01T10:12:00Z", "action": "EntitlementGranted", "detail": "Github-Read" }
-  ]
+  "u1002": {
+    "accountId": "svy-acc-1002",
+    "user": "bob.martin",
+    "displayName": "Bob Martin",
+    "department": "Engineering",
+    "manager": "CTO",
+    "roles": [
+      { "name": "Manager", "grantedOn": "2022-05-10", "owner": "cto", "certified": true },
+      { "name": "VPN User", "grantedOn": "2020-02-01", "owner": "net-ops", "certified": true }
+    ],
+    "entitlements": [
+      { "application": "Jira", "name": "Jira-Admin", "grantedOn": "2022-05-10" },
+      { "application": "Github", "name": "Github-Admin", "grantedOn": "2022-05-10" },
+      { "application": "Salesforce", "name": "SF-Manager", "grantedOn": "2022-06-15" }
+    ],
+    "risk": {
+      "score": 8,
+      "factors": ["Admin privileges", "Multiple systems"],
+      "lastCalculated": "2025-09-01T00:00:00Z"
+    },
+    "lastReviewed": "2025-09-01",
+    "certifications": [
+      { "campaign": "Q3-2025 Access Review", "status": "Approved", "completedAt": "2025-09-05" }
+    ],
+    "accessRequestsOpen": 0,
+    "history": [
+      { "ts": "2025-07-20T11:00:00Z", "action": "EntitlementGranted", "detail": "SF-Manager" }
+    ]
+  },
+  "u1005": {
+    "accountId": "svy-acc-1005",
+    "user": "evan.torres",
+    "displayName": "Evan Torres",
+    "department": "HR",
+    "manager": "HR Director",
+    "roles": [
+      { "name": "HR Specialist", "grantedOn": "2023-10-01", "owner": "hr-director", "certified": true }
+    ],
+    "entitlements": [
+      { "application": "Workday", "name": "Workday-User", "grantedOn": "2023-10-01" },
+      { "application": "BambooHR", "name": "BambooHR-User", "grantedOn": "2023-10-01" }
+    ],
+    "risk": {
+      "score": 5,
+      "factors": ["PII access"],
+      "lastCalculated": "2025-08-25T00:00:00Z"
+    },
+    "lastReviewed": "2025-08-25",
+    "certifications": [
+      { "campaign": "Q3-2025 Access Review", "status": "Approved", "completedAt": "2025-09-02" }
+    ],
+    "accessRequestsOpen": 0,
+    "history": [
+      { "ts": "2025-06-10T14:30:00Z", "action": "RoleGranted", "detail": "HR Specialist" }
+    ]
+  },
+  "u1008": {
+    "accountId": "svy-acc-1008",
+    "user": "hannah.park",
+    "displayName": "Hannah Park",
+    "department": "Design",
+    "manager": "Design Lead",
+    "roles": [
+      { "name": "Designer", "grantedOn": "2024-03-15", "owner": "design-lead", "certified": true }
+    ],
+    "entitlements": [
+      { "application": "Figma", "name": "Figma-User", "grantedOn": "2024-03-15" },
+      { "application": "Miro", "name": "Miro-User", "grantedOn": "2024-03-15" }
+    ],
+    "risk": {
+      "score": 4,
+      "factors": ["Design tools access"],
+      "lastCalculated": "2025-08-20T00:00:00Z"
+    },
+    "lastReviewed": "2025-08-20",
+    "certifications": [
+      { "campaign": "Q3-2025 Access Review", "status": "Approved", "completedAt": "2025-09-01" }
+    ],
+    "accessRequestsOpen": 0,
+    "history": [
+      { "ts": "2025-05-22T10:00:00Z", "action": "RoleGranted", "detail": "Designer" }
+    ]
+  },
+  "u1010": {
+    "accountId": "svy-acc-1010",
+    "user": "julia.nguyen",
+    "displayName": "Julia Nguyen",
+    "department": "Product",
+    "manager": "VP Product",
+    "roles": [
+      { "name": "Product Manager", "grantedOn": "2022-08-10", "owner": "vp-product", "certified": true }
+    ],
+    "entitlements": [
+      { "application": "Jira", "name": "Jira-Admin", "grantedOn": "2022-08-10" },
+      { "application": "Aha", "name": "Aha-User", "grantedOn": "2022-08-10" },
+      { "application": "Confluence", "name": "Confluence-Admin", "grantedOn": "2022-08-10" }
+    ],
+    "risk": {
+      "score": 6,
+      "factors": ["Admin access to tools"],
+      "lastCalculated": "2025-08-28T00:00:00Z"
+    },
+    "lastReviewed": "2025-08-28",
+    "certifications": [
+      { "campaign": "Q3-2025 Access Review", "status": "Approved", "completedAt": "2025-09-03" }
+    ],
+    "accessRequestsOpen": 0,
+    "history": [
+      { "ts": "2025-07-05T09:45:00Z", "action": "EntitlementGranted", "detail": "Confluence-Admin" }
+    ]
+  },
+  "u1015": {
+    "accountId": "svy-acc-1015",
+    "user": "oscar.diaz",
+    "displayName": "Oscar Diaz",
+    "department": "Engineering",
+    "manager": "Bob Martin",
+    "roles": [
+      { "name": "QA", "grantedOn": "2023-04-20", "owner": "eng-manager", "certified": true }
+    ],
+    "entitlements": [
+      { "application": "Jira", "name": "Jira-User", "grantedOn": "2023-04-20" },
+      { "application": "TestRail", "name": "TestRail-User", "grantedOn": "2023-04-20" }
+    ],
+    "risk": {
+      "score": 7,
+      "factors": ["Test environment access"],
+      "lastCalculated": "2025-08-22T00:00:00Z"
+    },
+    "lastReviewed": "2025-08-22",
+    "certifications": [
+      { "campaign": "Q3-2025 Access Review", "status": "Approved", "completedAt": "2025-09-01" }
+    ],
+    "accessRequestsOpen": 0,
+    "history": [
+      { "ts": "2025-06-18T11:20:00Z", "action": "RoleGranted", "detail": "QA" }
+    ]
+  },
+  "u1018": {
+    "accountId": "svy-acc-1018",
+    "user": "rita.souza",
+    "displayName": "Rita Souza",
+    "department": "People Ops",
+    "manager": "HR Director",
+    "roles": [
+      { "name": "HRBP", "grantedOn": "2021-12-15", "owner": "hr-director", "certified": true }
+    ],
+    "entitlements": [
+      { "application": "Workday", "name": "Workday-Admin", "grantedOn": "2021-12-15" },
+      { "application": "BambooHR", "name": "BambooHR-Admin", "grantedOn": "2021-12-15" }
+    ],
+    "risk": {
+      "score": 10,
+      "factors": ["PII access", "Admin privileges"],
+      "lastCalculated": "2025-08-30T00:00:00Z"
+    },
+    "lastReviewed": "2025-08-30",
+    "certifications": [
+      { "campaign": "Q3-2025 Access Review", "status": "Approved", "completedAt": "2025-09-04" }
+    ],
+    "accessRequestsOpen": 0,
+    "history": [
+      { "ts": "2025-07-12T13:00:00Z", "action": "EntitlementGranted", "detail": "Workday-Admin" }
+    ]
+  }
 }
